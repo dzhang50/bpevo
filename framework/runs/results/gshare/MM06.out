@@ -1,0 +1,41 @@
+********************  CBP3  Start ***********************
+Trace:            ../traces/MM06.bz2
+Uops to simulate: Whole Trace
+
+Trace is compressed by bzip2.
+
+Loading trace...
+Trace: start_cycle:3988382 end_cycle:42464204 start fetch_q:63 alloc_q:63
+Trace loaded.
+
+Reader max_mem: 244.26 M
+Reader info_mem: 0.28 M
+
+*********  RUN  1   *********
+Predictor:gshare
+config: 262144 counters, 64 KB cost
+Trace signature self checking: passed!
+
+Total cycles:                         38475823
+
+Num_Inst:                             48915032
+Num_Uops:                             50000001
+
+Num_cond_br:                          1755228
+Mispred_cond_br:                      44001
+Mispred_penalty_cond_br:              7734288
+Conditional_MPKI:                     0.8995
+Conditional_MR:                       0.0251
+Final Score Run1_Conditional_MPPKI:   158.1168
+
+Num_ind_br:                           750594
+Mispred_ind_br:                       750594
+Mispred_penalty_ind_br:               71398749
+Indirect_MPKI:                        15.3449
+Indirect_MR:                          1.0000
+Final Score Run1_Indirect_MPPKI:      1459.6484
+
+Simulation Time: 26 Seconds
+
+********************  CBP3  End   ***********************
+Total Simulation Time: 40 Seconds

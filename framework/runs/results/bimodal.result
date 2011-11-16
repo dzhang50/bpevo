@@ -1,0 +1,6 @@
+Average conditional MPPKI                                : 2255
+Total number of conditional branches                     : 189604312
+Total number of conditional branches mispredicts         : 28733198
+Total number of conditional branches mispredict penalties: 3705072416
+Average mispredict rate                                  : 15.1500 %
+Average penalty per misprediction                        : 128.9474

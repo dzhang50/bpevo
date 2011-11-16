@@ -415,7 +415,7 @@ void run(int sim_len) {
 
     printf("Num_ind_br:                           %d\n", num_ind_br);
     printf("Mispred_ind_br:                       %d\n", msp_ind_br);
-    printf("Mispred_penalty_cond_br:              %d\n", penalty_ind_br);
+    printf("Mispred_penalty_ind_br:              %d\n", penalty_ind_br);
     printf("Indirect_MPKI:                        %.4f\n", (double)msp_ind_br/(double)num_insts*1000);
     printf("Indirect_MR:                          %.4f\n", (double)msp_ind_br/(double)num_ind_br);
     printf("Final Score Run%i_Indirect_MPPKI:      %.4f\n\n", num_run, (double)penalty_ind_br/(double)num_insts*1000);

@@ -1,0 +1,41 @@
+********************  CBP3  Start ***********************
+Trace:            ../traces/MM05.bz2
+Uops to simulate: Whole Trace
+
+Trace is compressed by bzip2.
+
+Loading trace...
+Trace: start_cycle:2316317 end_cycle:24123964 start fetch_q:63 alloc_q:63
+Trace loaded.
+
+Reader max_mem: 209.57 M
+Reader info_mem: 0.01 M
+
+*********  RUN  1   *********
+Predictor:2-bit counter indexed by PC, shared hysteresis
+config: 32768 prediction table entries, 8192 shared hysteresis entries, 6 KB cost
+Trace signature self checking: passed!
+
+Total cycles:                         21807648
+
+Num_Inst:                             49155490
+Num_Uops:                             50000001
+
+Num_cond_br:                          5415877
+Mispred_cond_br:                      961237
+Mispred_penalty_cond_br:              106064751
+Conditional_MPKI:                     19.5550
+Conditional_MR:                       0.1775
+Final Score Run1_Conditional_MPPKI:   2157.7397
+
+Num_ind_br:                           0
+Mispred_ind_br:                       0
+Mispred_penalty_ind_br:              0
+Indirect_MPKI:                        0.0000
+Indirect_MR:                          -nan
+Final Score Run1_Indirect_MPPKI:      0.0000
+
+Simulation Time: 24 Seconds
+
+********************  CBP3  End   ***********************
+Total Simulation Time: 34 Seconds
