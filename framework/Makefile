@@ -19,8 +19,8 @@ all : $(notdir $(wildcard $(SRCDIR)/*))
 
 % : $(SRCDIR)/%/$(src_file_name).cc $(SRCDIR)/%/$(src_file_name).h
 	mkdir -p $(OUTDIR)
-	cp $(SRCDIR)/$@/$(src_file_name).cc ./
-	cp $(SRCDIR)/$@/$(src_file_name).h ./
+	cp -p $(SRCDIR)/$@/$(src_file_name).cc ./
+	cp -p $(SRCDIR)/$@/$(src_file_name).h ./
 	make $(tmp_out_name)
 	mv $(tmp_out_name) $(OUTDIR)/$@
 $(tmp_out_name) : $(objects)
