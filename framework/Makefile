@@ -8,25 +8,25 @@ FORMAT = 64
 CXXFLAGS = -O3 -Wall -Ireaderlib
 CXX = g++
 
-objects = cbp3_framework.o $(src_file_name).o
+objects = cbp3_framework.o predictor.o
 SRCDIR = predictors
 OUTDIR = bin
-
-src_file_name = predictor
-tmp_out_name = cbp3
+HEADERS = cbp3_framework.h ./readerlib/cbp3_reader.h ./readerlib/cbp3_def.h predictors.h
 
 all : $(notdir $(wildcard $(SRCDIR)/*))
 
-% : $(SRCDIR)/%/$(src_file_name).cc $(SRCDIR)/%/$(src_file_name).h
+% : $(SRCDIR)/%/predictor.cc $(SRCDIR)/%/predictor.h
 	mkdir -p $(OUTDIR)
-	cp $(SRCDIR)/$@/$(src_file_name).cc ./
-	cp $(SRCDIR)/$@/$(src_file_name).h ./
-	make $(tmp_out_name)
-	mv $(tmp_out_name) $(OUTDIR)/$@
-$(tmp_out_name) : $(objects)
-	$(CXX) -o $(tmp_out_name) $(objects) -Lreaderlib -lcbp3_trace.$(FORMAT)
-cbp3_framework.o: cbp3_framework.h ./readerlib/cbp3_reader.h ./readerlib/cbp3_def.h $(src_file_name).h
-$(src_file_name).o : ./readerlib/cbp3_def.h cbp3_framework.h $(src_file_name).h
+	cp $(SRCDIR)/$@/predictor.cc ./
+	cp $(SRCDIR)/$@/predictor.h ./
+	make cbp3
+	mv cbp3 $(OUTDIR)/$@
+
+cbp3 :
+	$(CXX) -c $(CXXFLAGS) -o cbp3_framework.o cbp3_framework.cc
+	$(CXX) -c $(CXXFLAGS) -o predictor.o predictor.cc
+	$(CXX) -o cbp3 cbp3_framework.o predictor.o -Lreaderlib -lcbp3_trace.$(FORMAT)
+
 
 .PHONY : clean
 clean :
