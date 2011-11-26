@@ -1,0 +1,4 @@
+
+tmp = TEST #( 256 ){ hi, temp };
+
+prediction = TABLE_2BITCNTR#(256) {readPC, writeTaken, writePC, writeValid};
