@@ -11,9 +11,10 @@ public class Node {
     sb.append( s );
   }
   public NodeType type;
-  public double value;
+  public String instanceName;
   public String msg;
   public List<Node> children;
+  public Node nodePtr;
 
   public Node( NodeType type ) {
     this.type = type;
@@ -44,7 +45,7 @@ public class Node {
   }
   @Override
   public String toString() {
-    String result = indentString() + type + ((msg != null) ? (":" + msg ) : "") + "\n";
+    String result = indentString() + type + ((msg != null) ? (":" + msg ) : "") + ((instanceName != null) ? (", " + instanceName ) : "") + "\n";
     indentLevel++;
     for ( Node n : children ) {
 	if(n == null) {

@@ -31,5 +31,7 @@ public enum NodeType {
       NUM,
       LOGIC,
       ID,
+      OUTPUT_ID,
+      INPUT_ID
       
 }

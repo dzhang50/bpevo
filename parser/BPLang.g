@@ -84,32 +84,36 @@ logic returns [Node value]
                 tmp.msg = $m2.value;
     }
     
-    '#('
-    m3=param { Node.log(" PARAM");
-               tmp.children.add($m3.value);
-    }
+    (
+      '#('
+      m3=param { Node.log(" PARAM");
+                 tmp.children.add($m3.value);
+      }
+      
+      (
+        ','
+        m4=param { Node.log(" PARAM MORE");
+                   tmp.children.add($m4.value);
+        }
+      )*
+      ')'
+    )?
 
     (
-      ','
-      m4=param { Node.log(" PARAM MORE");
-                 tmp.children.add($m4.value);
+      '{'
+      m5=nodeID { Node.log(" LOGIC VAR");
+                  $m5.value.type = NodeType.INPUT_ID;
+                  tmp.children.add($m5.value);
       }
-    )*
-    ')'
-
-    '{'
-    m5=nodeID { Node.log(" LOGIC VAR");
-                $m5.value.type = NodeType.INPUT_ID;
-                tmp.children.add($m5.value);
-    }
-    (
-      ','
-      m6=nodeID { Node.log(" LOGIC VAR MORE");
-                  $m6.value.type = NodeType.INPUT_ID;
-                  tmp.children.add($m6.value);
-      }
-    )*
-    '}'
+      (
+        ','
+        m6=nodeID { Node.log(" LOGIC VAR MORE");
+                    $m6.value.type = NodeType.INPUT_ID;
+                    tmp.children.add($m6.value);
+        }
+      )*
+      '}'
+    )?
   ;
 
 
