@@ -72,6 +72,9 @@ public class BPLangProg {
 	  }
 
 	  int param = rand.nextInt(Integer.parseInt(n.upperBound)-Integer.parseInt(n.lowerBound))+Integer.parseInt(n.lowerBound);
+	  
+	  // Round to nearest power of 2
+	  param = 1 << log2(param);
 	  predictor+=Integer.toString(param);
 	  numParam++;
 	}
@@ -116,6 +119,17 @@ public class BPLangProg {
 
     return node;
   }
+  
+  public static int log2(int val) {
+    int x = 0;
+
+    while((val >>= 1) > 0) {
+      x++;
+    }
+
+    return x;
+  }
+  
   
   public static Map<String, Node> genConfigMap(Node node) {
     Map<String, Node> map = new HashMap<String, Node>();
