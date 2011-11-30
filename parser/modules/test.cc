@@ -22,7 +22,7 @@ int main()
  
     for (ulong i = 0; i < output.size(); i++)
     {
-	cout << output[i] << ", MSB:" << MSB(output[i])[0]<< endl;
+	cout << output[i] << ", MSB:" << MSB(output[i])<< endl;
     }
 /*
     vector<dynamic_bitset<> > single;
@@ -35,6 +35,31 @@ int main()
 
     dynamic_bitset<> equal = EQUAL(output);
     cout << "EQUAL:" << endl << equal << endl;
+
+    
+    dynamic_bitset<> width(2,2ul);
+    dynamic_bitset<> twoBitEntries(2,3ul);
+    Table_Cntr twoBitCounter(twoBitEntries, width);
+    
+    out_idx.clear();
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
+    //twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
+    
+    out_idx.push_back(dynamic_bitset<> (1,0ul));
+    out_idx.push_back(dynamic_bitset<> (1,1ul));
+    output = twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,0ul));
+
+    cout << endl;
+    for (ulong i = 0; i < output.size(); i++)
+    {
+	cout << "2-bit counter[" << i << "]:" << output[i] << ", MSB:"<<MSB(output[i]) << endl;
+    }
     
     
 }
