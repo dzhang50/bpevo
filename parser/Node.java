@@ -12,6 +12,9 @@ public class Node {
   }
   public NodeType type;
   public String instanceName;
+  public String upperBound;
+  public String lowerBound;
+  public String percentage;
   public String msg;
   public List<Node> children;
   public Node nodePtr;

@@ -32,6 +32,9 @@ statement returns [Node value]
         | m2=logic { Node.log(" LOGIC m2 = function");
                      $value = $m2.value;
         }
+        | m3=config { Node.log(" CONFIG m3 = function");
+                     $value = $m3.value;
+        }
         )
         SEMICOLON
       )
@@ -117,12 +120,63 @@ logic returns [Node value]
   ;
 
 
+config returns [Node value]    
+  : m1=module { Node.log(" MODULE NAME: ..."+$m1.value+"...");
+                Node tmp = new Node(NodeType.LOGICCONFIG);
+                tmp.msg = $m1.value;
+                $value = tmp;
+    }
+    
+    (
+      '#('
+      m2=paramConfig { Node.log(" PARAMCONFIG");
+                       tmp.children.add($m2.value);
+      }
+      
+      (
+        ','
+        m3=paramConfig { Node.log(" PARAMCONFIG MORE");
+                   tmp.children.add($m3.value);
+        }
+      )*
+      ')'
+    )?
+
+    (
+      '{'
+      m4=nodeIDconfig { Node.log(" LOGIC VAR CONFIG");
+                        tmp.children.add($m4.value);
+      }
+      (
+        ','
+        m5=nodeIDconfig { Node.log(" LOGIC VAR CONFIG MORE");
+                          tmp.children.add($m5.value);
+        }
+      )*
+      '}'
+    )?
+  ;
+
+
 nodeID returns [Node value]
   : 
     m1=ID { Node.log(" nodeID: ID");
             Node tmp = new Node(NodeType.ID);
             tmp.msg = $m1.text;
             $value = tmp;
+    }
+  ;
+
+nodeIDconfig returns [Node value]
+  : 
+    m1=ID { Node.log(" nodeIDconfig: ID");
+            Node tmp = new Node(NodeType.IDCONFIG);
+            tmp.msg = $m1.text;
+            $value = tmp;
+    }
+    '%'
+    m2=NUMBER { Node.log(" percentage");
+                tmp.percentage = $m2.text;
     }
   ;
 
@@ -133,6 +187,27 @@ param returns [Node value]
                 tmp.msg = $m1.text;
                 $value = tmp;
     }
+  ;
+
+paramConfig returns [Node value]
+  : 
+    '['
+    m1=NUMBER { Node.log(" paramConfig: upperBound");
+                Node tmp = new Node(NodeType.PARAMCONFIG);
+                tmp.upperBound = $m1.text;
+                $value = tmp;
+    }
+    ':'
+    m2=NUMBER { Node.log(" lowerBound");
+                tmp.lowerBound = $m2.text;
+    }
+    ']'
+    '%'
+    m3=NUMBER { Node.log(" percentage");
+                tmp.percentage = $m3.text;
+    }
+    
+    
   ;
 
 module returns [String value]

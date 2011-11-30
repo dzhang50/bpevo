@@ -8,21 +8,120 @@ public class BPLangProg {
 
   public static void main(String[] args) throws Exception {
 
-    //List<String> varList = new ArrayList<String>();
-    //Map<String, Node> funcList = new HashMap<String, Node>();
-    //Map<String, Node> queryList = new HashMap<String, Node>();
-
     if(args.length != 1) {
       System.out.println("ERROR: QueryProg <file path>");
       System.exit(0);
     }
+    
+    Node tree1 = fileToDepTree(args[0]);
+    Node tree = genPredictor("library");
+  }
+  
+  public static Node genPredictor(String file) throws Exception {
+    Node node = getInitialNode(file);
+    System.out.println(node);
+    Map<String, Node> library = genConfigMap(node);
+    
+    // Use constrained random method of generating a predictor
+    
+    Random rand = new Random(128);
+    int predictorSize = rand.nextInt(10)+1; // size 1-10 elements
+    List<String> vars = new ArrayList<String>();
+    addInputKeywords(vars);
 
-    ANTLRStringStream in = new ANTLRFileStream(args[0]);
-    BPLangLexer lexer = new BPLangLexer(in);
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-    BPLangParser parser = new BPLangParser(tokens);
-    Node node = parser.eval();
-    //System.out.println(file);
+    List<String> libArray = new ArrayList<String>(library.keySet());
+    List<Integer> libCntArray = new ArrayList<Integer>();
+    for(int i = 0; i < libArray.size(); i++) {
+      libCntArray.add(0);
+    }
+
+    String predictor = "";
+    String moduleName = "";
+    String moduleOutput = "";
+    Node module;
+    String moduleInputs = "";
+    int moduleIdx = 0;
+    for(int i = 0; i < predictorSize; i++) {
+      moduleInputs = "";
+
+      // Randomly select a structure
+      moduleIdx = rand.nextInt(libArray.size());
+      moduleName = libArray.get(moduleIdx);
+      module = library.get(moduleName);
+      moduleOutput = moduleName.toLowerCase()+"_"+libCntArray.get(moduleIdx);
+      libCntArray.set(moduleIdx, libCntArray.get(moduleIdx)+1);
+      predictor += moduleOutput + " = " + moduleName;
+
+      // Randomly select parameters
+      int paramFound = 0;
+      int numParam = 0;
+      for(Node n : module.children) {
+	if(n.type == NodeType.PARAMCONFIG) {
+	  if(paramFound == 0) {
+	    predictor += "#(";
+	    paramFound = 1;
+	  }
+	  else if(numParam != 0) {
+	    predictor += ", ";
+	  }
+
+	  int param = rand.nextInt(Integer.parseInt(n.upperBound)-Integer.parseInt(n.lowerBound))+Integer.parseInt(n.lowerBound);
+	  predictor+=Integer.toString(param);
+	  numParam++;
+	}
+      }
+      if(paramFound == 1) {
+	predictor += ")";
+      }
+      
+      // Randomly select input parameters
+      int inputFound = 0;
+      int numInput = 0;
+      for(Node n : module.children) {
+	if(n.type == NodeType.IDCONFIG) {
+	  if(inputFound == 0) {
+	    predictor += " {";
+	    inputFound = 1;
+	  }
+	  else if(numInput != 0) {
+	    predictor += ", ";
+	  }
+	  
+	  if((Integer.parseInt(n.percentage) > rand.nextInt(100)) && vars.contains(n.msg)) {
+	    predictor += n.msg;
+	  }
+	  else {
+	    predictor += vars.get(rand.nextInt(vars.size()));
+	  }
+	  numInput++;
+	}
+      }
+      predictor += "}";
+
+      // Assuming only 1 output, add to output list --- FIXME
+      vars.add(moduleOutput);
+      
+      predictor+="\n";
+    }
+    
+    // Assign the prediction output value
+    
+    System.out.println(predictor);
+
+    return node;
+  }
+  
+  public static Map<String, Node> genConfigMap(Node node) {
+    Map<String, Node> map = new HashMap<String, Node>();
+
+    for(Node n : node.children) {
+      map.put(n.msg, n);
+    }
+    return map;
+  }
+  
+  public static Node fileToDepTree(String file) throws Exception {
+    Node node = getInitialNode(file);
 
     System.out.println("\nInitial tree structure:");
     System.out.println(node.toString());
@@ -31,8 +130,20 @@ public class BPLangProg {
     List<String> inputKeywords = new ArrayList<String>();
     addInputKeywords(inputKeywords);
     Node nodeTree = buildTree("prediction", node, inputKeywords);
-
+    
     System.out.println(nodeTree.toString());
+    
+    return nodeTree;
+  }
+  
+  public static Node getInitialNode(String file) throws Exception {
+    ANTLRStringStream in = new ANTLRFileStream(file);
+    BPLangLexer lexer = new BPLangLexer(in);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    BPLangParser parser = new BPLangParser(tokens);
+    Node node = parser.eval();
+    
+    return node;
   }
 
   public static void addInputKeywords(List<String> list) {
@@ -70,7 +181,7 @@ public class BPLangProg {
 
   public static Node buildTree(String outputName, Node rawNodes, List<String> filter) throws Exception {  
     boolean predictionFound = false;
-    System.out.println("Finding node corresponding to output: "+outputName);
+    //System.out.println("Finding node corresponding to output: "+outputName);
 
     Node newNode = null;
     List<String> inputs = new ArrayList<String>();
@@ -81,7 +192,7 @@ public class BPLangProg {
       // For each module, examine the output_ids
       for(Node id : module.children) {
 	if(id.type == NodeType.OUTPUT_ID && id.msg.equals(outputName)) {
-	  System.out.println("Prediction found in module "+module.msg);
+	  //System.out.println("Prediction found in module "+module.msg);
 	  
 	  // Set root node in new tree to point to this node
 	  newNode = new Node(NodeType.LOGIC);
