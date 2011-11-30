@@ -1,4 +1,5 @@
 #include "table.h"
+#include "logic.h"
 #include <iostream>
 
 int main()
@@ -20,8 +21,10 @@ int main()
  
     for (ulong i = 0; i < output.size(); i++)
     {
-	cout << output[i] << ",";
+	cout << output[i] << endl;
     }
-    cout << endl;
+    
+    dynamic_bitset<> XORed = XOR(output);
+    cout << "XOR:" << endl << XORed << endl;
     
 }
