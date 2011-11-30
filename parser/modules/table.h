@@ -1,4 +1,7 @@
+#ifndef HELPER
+#define HELPER
 #include "helper.h"
+#endif
 
 class Table
 {

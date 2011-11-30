@@ -2,6 +2,7 @@
 
 #include <boost/functional/hash.hpp>
 #include <boost/dynamic_bitset.hpp>
+#include <cassert>
 
 using namespace boost;
 using namespace std;
