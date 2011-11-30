@@ -50,6 +50,12 @@ public class BPLangProg {
       module = library.get(moduleName);
       moduleOutput = moduleName.toLowerCase()+"_"+libCntArray.get(moduleIdx);
       libCntArray.set(moduleIdx, libCntArray.get(moduleIdx)+1);
+      
+      // If last iteration, select as bp output
+      if(i == predictorSize - 1) {
+	moduleOutput = "prediction";
+      }
+
       predictor += moduleOutput + " = " + moduleName;
 
       // Randomly select parameters
