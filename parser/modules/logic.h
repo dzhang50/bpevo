@@ -39,4 +39,10 @@ dynamic_bitset<> EQUAL (vector<dynamic_bitset<> > inputs)
     return result;
 }
 
+dynamic_bitset<> MSB (dynamic_bitset<> input)
+{
+    bool msbSet = input[input.size()-1];
+    return (msbSet?(dynamic_bitset<>(1,1ul)):(dynamic_bitset<>(1, 0ul)));
+}
+
 

@@ -18,10 +18,11 @@ int main()
     }
 
     vector<dynamic_bitset<> > output = bimodal.Invocate(out_idx,in_data,  dynamic_bitset<> (4,0), dynamic_bitset<> (1,0ul));
+
  
     for (ulong i = 0; i < output.size(); i++)
     {
-	cout << output[i] << endl;
+	cout << output[i] << ", MSB:" << MSB(output[i])[0]<< endl;
     }
 /*
     vector<dynamic_bitset<> > single;
@@ -31,8 +32,6 @@ int main()
     
     dynamic_bitset<> XORed = XOR(output);
     cout << "XOR:" << endl << XORed << endl;
-
-    
 
     dynamic_bitset<> equal = EQUAL(output);
     cout << "EQUAL:" << endl << equal << endl;
