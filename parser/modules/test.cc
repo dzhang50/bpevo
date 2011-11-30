@@ -4,7 +4,7 @@
 
 int main()
 {
-    dynamic_bitset<> numEntries(4,15ul);
+    dynamic_bitset<> numEntries(4,14ul);
     vector<dynamic_bitset<> > out_idx;
 
     Table bimodal(numEntries);  
@@ -23,8 +23,19 @@ int main()
     {
 	cout << output[i] << endl;
     }
+/*
+    vector<dynamic_bitset<> > single;
+    single.push_back(output[5]);
+    single.push_back(output[10]);
+*/
     
     dynamic_bitset<> XORed = XOR(output);
     cout << "XOR:" << endl << XORed << endl;
+
+    
+
+    dynamic_bitset<> equal = EQUAL(output);
+    cout << "EQUAL:" << endl << equal << endl;
+    
     
 }

@@ -17,3 +17,26 @@ dynamic_bitset<> XOR (vector<dynamic_bitset<> > inputs)
 
     return result;
 }
+
+dynamic_bitset<> EQUAL (vector<dynamic_bitset<> > inputs)
+{
+    size_t numInputs = inputs.size();   
+    assert(numInputs > 0);
+
+    bool isEqual=true;
+    dynamic_bitset<> value = inputs[0];
+
+    for (size_t i = 1; i < numInputs; i++)
+    {
+	isEqual = (value == inputs[i]);
+	if (!isEqual)
+	    break;
+    }
+
+    dynamic_bitset<> result;
+    result.push_back(isEqual);
+	
+    return result;
+}
+
+
