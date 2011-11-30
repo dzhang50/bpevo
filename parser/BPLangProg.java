@@ -13,8 +13,9 @@ public class BPLangProg {
       System.exit(0);
     }
     
-    Node tree1 = fileToDepTree(args[0]);
+    //Node tree1 = fileToDepTree(args[0], true);
     Node tree = genPredictor("library");
+    System.out.println(tree);
   }
   
   public static Node genPredictor(String file) throws Exception {
@@ -105,7 +106,11 @@ public class BPLangProg {
 	  numInput++;
 	}
       }
-      predictor += "}";
+      if(inputFound != 0) {
+	predictor += "}";
+      }
+
+      predictor += ";";
 
       // Assuming only 1 output, add to output list --- FIXME
       vars.add(moduleOutput);
@@ -117,7 +122,7 @@ public class BPLangProg {
     
     System.out.println(predictor);
 
-    return node;
+    return fileToDepTree(predictor, false);
   }
   
   public static int log2(int val) {
@@ -140,8 +145,14 @@ public class BPLangProg {
     return map;
   }
   
-  public static Node fileToDepTree(String file) throws Exception {
-    Node node = getInitialNode(file);
+  public static Node fileToDepTree(String file, boolean isFile) throws Exception {
+    Node node;
+    if(isFile) {
+      node = getInitialNode(file);
+    }
+    else {
+      node = getInitialNodeString(file);
+    }
 
     System.out.println("\nInitial tree structure:");
     System.out.println(node.toString());
@@ -156,6 +167,16 @@ public class BPLangProg {
     return nodeTree;
   }
   
+  public static Node getInitialNodeString(String str) throws Exception {
+    ANTLRStringStream in = new ANTLRStringStream(str);
+    BPLangLexer lexer = new BPLangLexer(in);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    BPLangParser parser = new BPLangParser(tokens);
+    Node node = parser.eval();
+    
+    return node;
+  }
+
   public static Node getInitialNode(String file) throws Exception {
     ANTLRStringStream in = new ANTLRFileStream(file);
     BPLangLexer lexer = new BPLangLexer(in);
