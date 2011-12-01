@@ -39,9 +39,9 @@ public class BPLangProg {
     }
     
     // Init dependency array to empty
-    List<List<String>> dep = new ArrayList<List<String>>();
+    List<List<String>> deps = new ArrayList<List<String>>();
     for(int i = 0; i < vars.size(); i++) {
-      dep.add(new ArrayList());
+      deps.add(new ArrayList<String>());
     }
     
     String predictor = "";
@@ -50,8 +50,10 @@ public class BPLangProg {
     Node module;
     String moduleInputs = "";
     int moduleIdx = 0;
+    List<String> dep;
     for(int i = 0; i < predictorSize; i++) {
       moduleInputs = "";
+      dep = new ArrayList<String>();
 
       // Randomly select a structure
       moduleIdx = rand.nextInt(libArray.size());
@@ -105,12 +107,29 @@ public class BPLangProg {
 	    predictor += ", ";
 	  }
 	  
+	  // Choose "sticky" input
+	  String input = "";
 	  if((Integer.parseInt(n.percentage) > rand.nextInt(100)) && vars.contains(n.msg)) {
-	    predictor += n.msg;
+	    int found = 0;
+	    while(found == 0) {
+	      int testIdx = rand.nextInt(vars.size());
+	      if(vars.get(testIdx).equals(n.msg) || deps.get(testIdx).contains(n.msg)) {
+		input = vars.get(testIdx);
+		found = 1;
+	      }
+	    }
 	  }
 	  else {
-	    predictor += vars.get(rand.nextInt(vars.size()));
+	    input = vars.get(rand.nextInt(vars.size()));
 	  }
+	  predictor += input;
+	  
+	  // Build dependency chain
+	  // 1. Add immediate dependencies
+	  dep.add(input);
+	  
+	  // 2. Add next set of dependencies
+	  dep.addAll(deps.get(vars.indexOf(input)));
 	  numInput++;
 	}
       }
@@ -121,7 +140,8 @@ public class BPLangProg {
 
       // Assuming only 1 output, add to output list --- FIXME
       vars.add(moduleOutput);
-      
+      deps.add(dep);
+      //System.out.println("Dependencies for "+moduleName+": "+dep);
       predictor+="\n";
     }
     
