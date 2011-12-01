@@ -29,13 +29,20 @@ public:
 
 dynamic_bitset<> XOR::Invocate (vector<dynamic_bitset<> > inputs)
 {
+    size_t minSize;
+
     size_t numInputs = inputs.size();   
     assert(numInputs > 0);
 
     dynamic_bitset<> result = inputs[0];
+    minSize = result.size();
 
     for (size_t i = 1; i < numInputs; i++)
     {
+	if (inputs[i].size() < minSize)
+	    minSize = inputs[i].size();
+	result.resize(minSize);
+	inputs[i].resize(minSize);
 	result ^= inputs[i];
     }
 

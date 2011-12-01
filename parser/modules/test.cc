@@ -8,12 +8,15 @@
 
 #include <iostream>
 
+ulong numEntries = 14ul;
+TABLE bimodal = TABLE(numEntries);
+EQUAL equalInst = EQUAL();
+XOR test = XOR();
+
 int main()
 {
-    ulong numEntries = 14ul;
+    //equalInst = EQUAL();
     vector<dynamic_bitset<> > out_idx;
-
-    TABLE bimodal(numEntries);  
 
     dynamic_bitset<> in_data;
     for (ulong i = 0ul; i < numEntries; i++)
@@ -40,7 +43,7 @@ int main()
     dynamic_bitset<> XORed = XOR().Invocate(output[5], output[10]);
     cout << "XOR:" << endl << XORed << endl;
 
-    dynamic_bitset<> equal = EQUAL().Invocate(output[0], output[0]);
+    dynamic_bitset<> equal = equalInst.Invocate(output[0], output[0]);
     cout << "EQUAL:" << endl << equal << endl;
 
     
