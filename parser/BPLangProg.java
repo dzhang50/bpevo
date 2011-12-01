@@ -363,14 +363,17 @@ public class BPLangProg {
     out.write("#include <inttypes.h>\n\n");
     
     out.write("#include \"cbp3_def.h\"\n");
-    out.write("#include \"cbp3_framework.h\"\n");
+    out.write("#include \"cbp3_framework.h\"\n\n");
     //out.write("#include \"predictor.h\"\n\n");
 
     out.write("#ifndef TABLES\n");
     out.write("#include \"modules/table.h\"\n");
-    out.write("#endif\n");    
+    out.write("#endif\n\n");    
     out.write("#ifndef LOGIC\n");
     out.write("#include \"modules/logic.h\"\n");
+    out.write("#endif\n\n");
+    out.write("#ifndef GHR\n");
+    out.write("#include \"modules/ghr.h\"\n");
     out.write("#endif\n\n");
 
     out.write("using namespace std;\n\n");
@@ -445,8 +448,8 @@ public class BPLangProg {
     out.write("    retire_uop = &rob_entry(rob_ptr)->uop;\n\n");
     
     out.write("    // Assign static variables\n");
-    out.write("    readValid = dynamic_bitset<>(1, 0);\n");
-    out.write("    writeValid = dynamic_bitset<>(1, 0);\n");
+    out.write("    readValid = dynamic_bitset<>(1, 0ul);\n");
+    out.write("    writeValid = dynamic_bitset<>(1, 0ul);\n");
     out.write("    if((i < numFetch) && (fe_uop->type & IS_BR_CONDITIONAL)) {\n");
     out.write("      readValid[0] = true;\n");
     out.write("    }\n");
@@ -457,12 +460,11 @@ public class BPLangProg {
     out.write("    readPC = dynamic_bitset<>(32, fe_uop->pc);\n");
     out.write("    writePC = dynamic_bitset<>(32, retire_uop->pc);\n");
     out.write("    writeTaken = dynamic_bitset<>(1, retire_uop->br_taken);\n");
-    out.write("    writeMispredicted = dynamic_bitset<>(1, 0);\n");
+    out.write("    writeMispredicted = dynamic_bitset<>(1, 0ul);\n");
     out.write("    writeMispredicted[0] = (rob_entry(rob_ptr)->last_pred == retire_uop->br_taken);\n\n");
     
-    out.write("    dynamic_bitset<> prediction = dynamic_bitset<>(1,0);\n\n");
+    //out.write("    dynamic_bitset<> prediction = dynamic_bitset<>(1,0);\n\n");
     out.write("    // For special modules, some additional processing may be necessary\n");
-    out.write("    updateSpecialState();\n\n");
     out.write("    // ---------------- GENERATED LOGIC HERE -----------------\n\n\n");
     int inputFound = 0;
     for(Node n : tree.children) {
@@ -491,9 +493,11 @@ public class BPLangProg {
     out.write("\n\n\n    // Report prediction\n");
     out.write("    if(readValid[0]) {\n");
     out.write("      assert(report_pred(fe_ptr, false, prediction[0]));\n");
-    out.write("    }\n");
+    out.write("    }\n\n");
+    out.write("    updateSpecialState();\n\n");
     out.write("  }\n");
     out.write("}\n\n\n");
+    
 
     out.write("void PredictorRunEnd() {}\n\n");
 
