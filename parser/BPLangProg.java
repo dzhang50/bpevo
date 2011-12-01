@@ -240,12 +240,12 @@ public class BPLangProg {
     out.write("dynamic_bitset<> readPC;\n");
     out.write("dynamic_bitset<> writePC;\n");
     out.write("dynamic_bitset<> writeTaken;\n");
-    out.write("dynamic_bitset<> writeMispredicted;\n");
+    out.write("dynamic_bitset<> writeMispredicted;\n\n\n");
     
     for(Node n : tree.children) {
       out.write(n.msg+" ");
       if(n.children.get(0).type == NodeType.OUTPUT_ID) {
-	  out.write("module_"+n.children.get(0).msg+";\n");
+	  out.write("module_"+n.children.get(0).msg+" = "+n.msg+"();\n");
       }
       else {
 	throw new Exception("ERROR: OUTPUT_ID not found");
@@ -255,6 +255,8 @@ public class BPLangProg {
     // Predictor Init
     int outFound = 0;
     int paramFound = 0;
+    out.write("\n\nvoid PredictorInit() {}\n\n");
+/*
     out.write("\n\nvoid PredictorInit() {\n");
     for(Node n : tree.children) {
       outFound = 0;
@@ -276,7 +278,7 @@ public class BPLangProg {
       out.write(");\n");
     }
     out.write("}\n\n");
-    
+*/  
     // Predictor Reset
     out.write("void PredictorReset() {}\n\n");
     
