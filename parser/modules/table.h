@@ -1,5 +1,5 @@
-#ifndef TABLE
-#define TABLE
+#ifndef TABLES
+#define TABLES
 #endif
 
 #ifndef HELPER
@@ -10,13 +10,13 @@
 #include "logic.h"
 #endif
 
-class Table
+class TABLE
 {
 protected:
     dynamic_bitset<> *table;
-public:
     ulong numEntries; 
-    Table (ulong numEntriesInput);
+public:
+    TABLE (ulong numEntriesInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
     dynamic_bitset<> Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
@@ -24,11 +24,11 @@ public:
     void Initialize();
 };
 
-class Table_Cntr : public Table
+class TABLE_CNTR : public TABLE
 {
     ulong width;
 public:
-    Table_Cntr(ulong numEntriesInput, ulong widthInput);
+    TABLE_CNTR(ulong numEntriesInput, ulong widthInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
     dynamic_bitset<> Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
@@ -36,15 +36,25 @@ public:
     void Initialize();
 };
 
+class TABLE_2BITCNTR : TABLE_CNTR
+{
+public:
+    TABLE_2BITCNTR(ulong numEntriesInput);
+    vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
+				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
+    dynamic_bitset<> Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
+};
 
-Table::Table (ulong numEntriesInput)
+
+TABLE::TABLE (ulong numEntriesInput)
 {
     numEntries = numEntriesInput;
     table = new dynamic_bitset<>[numEntries];
     Initialize();
 }
 
-void Table::Initialize()
+void TABLE::Initialize()
 {
     for (ulong i = 0; i < numEntries; i++)
     {
@@ -52,7 +62,7 @@ void Table::Initialize()
     }
 }
 
-vector<dynamic_bitset<> > Table::Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
+vector<dynamic_bitset<> > TABLE::Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
 {
     ulong numReads = out_idx.size();
@@ -76,21 +86,21 @@ vector<dynamic_bitset<> > Table::Invocate(vector<dynamic_bitset<> > out_idx, dyn
     return output;
 }
 
-dynamic_bitset<> Table::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+dynamic_bitset<> TABLE::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
 {
     vector<dynamic_bitset<> > vector;
     vector.push_back(out_idx);
-    return (Table::Invocate(vector, in_data, in_idx, in_enable)[0]);
+    return (TABLE::Invocate(vector, in_data, in_idx, in_enable)[0]);
     
 }
 
-Table_Cntr::Table_Cntr(ulong numEntriesInput, ulong widthInput) : Table(numEntriesInput), width(widthInput)
+TABLE_CNTR::TABLE_CNTR(ulong numEntriesInput, ulong widthInput) : TABLE(numEntriesInput), width(widthInput)
 {
-    Table_Cntr::Initialize();   
+    TABLE_CNTR::Initialize();   
 }
 
-void Table_Cntr::Initialize()
+void TABLE_CNTR::Initialize()
 {
     ulong weaklyTaken = ((1 << (width - 1)) - 1);
     for (ulong i = 0; i < numEntries; i++)
@@ -100,7 +110,7 @@ void Table_Cntr::Initialize()
     }
 }
 
-vector<dynamic_bitset<> > Table_Cntr::Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
+vector<dynamic_bitset<> > TABLE_CNTR::Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
 {
     ulong numReads = out_idx.size();
@@ -135,13 +145,32 @@ vector<dynamic_bitset<> > Table_Cntr::Invocate(vector<dynamic_bitset<> > out_idx
     return output;
 }
 
-dynamic_bitset<> Table_Cntr::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+dynamic_bitset<> TABLE_CNTR::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
 {
     vector<dynamic_bitset<> > vector;
     vector.push_back(out_idx);
-    return (Table_Cntr::Invocate(vector, in_data, in_idx, in_enable)[0]);
+    return (TABLE_CNTR::Invocate(vector, in_data, in_idx, in_enable)[0]);
     
+}
+
+TABLE_2BITCNTR::TABLE_2BITCNTR(ulong numEntriesInput) : TABLE_CNTR(numEntriesInput, 2) {}
+
+vector<dynamic_bitset<> > TABLE_2BITCNTR::Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data, dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
+{
+    vector<dynamic_bitset<> > output = TABLE_CNTR::Invocate(out_idx, in_data, in_idx, in_enable);
+    for (ulong i = 0; i < output.size(); i++)
+    {
+	output[i] = MSB().Invocate(output[i]);
+    }
+    return output;
+}
+
+dynamic_bitset<> TABLE_2BITCNTR::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data, dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
+{
+    vector<dynamic_bitset<> > input;
+    input.push_back(out_idx);
+    return (TABLE_2BITCNTR::Invocate(input, in_data, in_idx, in_enable)[0]);
 }
 
 
