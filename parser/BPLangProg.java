@@ -31,7 +31,12 @@ public class BPLangProg {
 
     Node tree2 = getInitialNodeString(pred);
 
-    Node tree3 = matePredictors(tree1, tree2, rand);
+    Node tree3;
+
+    do {
+      tree3 = matePredictors(tree1, tree2, rand);
+    } while(verifyPredictor(tree3) == false);
+
     System.out.println(tree1+"\n+\n"+tree2+"\n=\n"+tree3);
     genCpp(tree3);
   }
@@ -131,10 +136,10 @@ public class BPLangProg {
     return node;
   }
   
-  public static Node mutatePredictor(Node node, Random rand) {
+  public static void mutatePredictor(Node node, Random rand) {
     int sel = rand.nextInt(2);
     
-    if(sel == 0) {
+    if(sel == 0 || sel == 1) {
       // Change a wire connection
       int nodeIdx = -1;
       do {
@@ -162,6 +167,34 @@ public class BPLangProg {
 
       // TODO... gotta deal with parameter ranges
     }
+  }
+
+  // Node (Flat) -> boolean
+  public static boolean verifyPredictor(Node node) throws Exception {
+    /* REQUIREMENTS:
+
+    1. Maximum depth of 5
+    2. Maximum 100 nodes
+    3. Maximum 20 actual nodes in use
+    */
+
+    List<String> inputKeywords = new ArrayList<String>();
+    addInputKeywords(inputKeywords);
+    Node nodeTree = buildTree("prediction", node, inputKeywords);
+    
+    if(treeDepth(nodeTree) > 5) {
+      return false;
+    }
+    
+    if(treeSize(nodeTree) > 20) {
+      return false;
+    }
+    
+    if(node.children.size() > 100) {
+      return false;
+    }
+
+    return true;
   }
 
 
@@ -566,6 +599,35 @@ public class BPLangProg {
 	i = i + 1;
       }
     }
+  }
+
+  public static int treeDepth(Node node) {
+    if(node.children.size() == 0) {
+      return 1;
+    }
+
+    int max = 0;
+    for(Node n : node.children) {
+      int depth = treeDepth(n);
+      if(depth > max) {
+	max = depth;
+      }
+    }
+
+    return max;
+  }
+
+  public static int treeSize(Node node) {
+    if(node.children.size() == 0) {
+      return 1;
+    }
+
+    int size = 0;
+    for(Node n : node.children) {
+      size += treeSize(n);
+    }
+
+    return size;
   }
 
   // Node (Flat) -> Node (Dep)
