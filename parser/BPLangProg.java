@@ -22,7 +22,7 @@ public class BPLangProg {
       System.exit(0);
     }
     
-    Node tree1 = fileToDepTree(args[0], true);
+    Node tree1 = getInitialNode(args[0]);
     String pred = genPredictor("library");
     genCpp(getInitialNodeString(pred));
     System.out.println("\n\n"+pred+"\n\n");
@@ -227,7 +227,6 @@ public class BPLangProg {
     out.write("using namespace std;\n\n");
     
     // Global variable definition
-    out.write("cbp3_cycle_activity_t *cycle_info;\n");
     out.write("int numFetch;\n");
     out.write("int numRetire;\n");
     out.write("uint32_t fe_ptr;\n");
@@ -278,14 +277,15 @@ public class BPLangProg {
       out.write(");\n");
     }
     out.write("\n\n");
-  
+
+    out.write("void PredictorInit() {}\n\n");
     // Predictor Reset
     out.write("void PredictorReset() {}\n\n");
     
     // Predictor Run a Cycle
     out.write("void PredictorRunACycle() {\n");
     out.write("  // get info about what uops are processed at each pipeline stage\n");
-    out.write("  cycle_info = get_cycle_info();\n");
+    out.write("  cbp3_cycle_activity_t *cycle_info = get_cycle_info();\n");
     
     out.write("  numFetch = cycle_info->num_fetch;\n");
     out.write("  numRetire = cycle_info->num_retire;\n");

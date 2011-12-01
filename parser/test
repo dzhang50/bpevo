@@ -1,5 +1,4 @@
-
-a = IDEAL_GHR#(8);
-b = XOR{a, readPC};
-c = XOR{a, writePC};
-prediction = TABLE_2BITCNTR#(256) {b, writeTaken, c, writeValid};
+ideal_ghr_0 = IDEAL_GHR#(8);
+xor_0 = XOR{ideal_ghr_0, readPC};
+xor_1 = XOR{ideal_ghr_0, writePC};
+prediction = TABLE_2BITCNTR#(256) {xor_0, writeTaken, xor_1, writeValid};
