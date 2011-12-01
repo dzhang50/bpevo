@@ -1,6 +1,13 @@
+#ifndef TABLE
+#define TABLE
+#endif
+
 #ifndef HELPER
-#define HELPER
 #include "helper.h"
+#endif
+
+#ifndef LOGIC
+#include "logic.h"
 #endif
 
 class Table
@@ -9,24 +16,31 @@ protected:
     dynamic_bitset<> *table;
 public:
     ulong numEntries; 
-    Table (dynamic_bitset<> numEntriesInput);
+    Table (ulong numEntriesInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
+    void Initialize();
 };
 
 class Table_Cntr : public Table
 {
     ulong width;
 public:
-    Table_Cntr(dynamic_bitset<> numEntriesInput, dynamic_bitset<> width);
+    Table_Cntr(ulong numEntriesInput, ulong widthInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
+    void Initialize();
 };
 
-Table::Table (dynamic_bitset<> numEntriesInput)
+Table::Table (ulong numEntriesInput)
 {
-    numEntries = numEntriesInput.to_ulong();
+    numEntries = numEntriesInput;
     table = new dynamic_bitset<>[numEntries];
+    Initialize();
+}
+
+void Table::Initialize()
+{
     for (ulong i = 0; i < numEntries; i++)
     {
 	table[i].reset();
@@ -47,7 +61,7 @@ vector<dynamic_bitset<> > Table::Invocate(vector<dynamic_bitset<> > out_idx, dyn
 	output.push_back(table[index]);
     }
 
-    if (in_enable.to_ulong() != 0)
+    if (MSB(in_enable).test(0))
     {
 	index = in_idx.to_ulong();
 	index %= numEntries;
@@ -57,12 +71,18 @@ vector<dynamic_bitset<> > Table::Invocate(vector<dynamic_bitset<> > out_idx, dyn
     return output;
 }
 
-Table_Cntr::Table_Cntr(dynamic_bitset<> numEntriesInput, dynamic_bitset<> width) : Table(numEntriesInput), width(width.to_ulong())
+Table_Cntr::Table_Cntr(ulong numEntriesInput, ulong widthInput) : Table(numEntriesInput), width(widthInput)
 {
+    Table_Cntr::Initialize();   
+}
+
+void Table_Cntr::Initialize()
+{
+    ulong weaklyTaken = ((1 << (width - 1)) - 1);
     for (ulong i = 0; i < numEntries; i++)
     {
-	table[i].resize(this->width);
-	table[i].reset();
+	table[i].resize(width);
+	table[i] = dynamic_bitset<>(width, weaklyTaken);
     }
 }
 
@@ -80,7 +100,7 @@ vector<dynamic_bitset<> > Table_Cntr::Invocate(vector<dynamic_bitset<> > out_idx
 	output.push_back(table[index]);
     }
 
-    if (in_enable.any())
+    if (MSB(in_enable).test(0))
     {
 	index = in_idx.to_ulong();
 	index %= numEntries;

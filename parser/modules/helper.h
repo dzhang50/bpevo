@@ -1,3 +1,7 @@
+#ifndef HELPER
+#define HELPER
+#endif
+
 #define BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS
 
 #include <boost/functional/hash.hpp>

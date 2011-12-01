@@ -1,5 +1,8 @@
+#ifndef LOGIC
+#define LOGIC
+#endif
+
 #ifndef HELPER
-#define HELPER
 #include "helper.h"
 #endif
 
