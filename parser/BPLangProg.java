@@ -9,7 +9,7 @@ public class BPLangProg {
   /* Available functions:
 
   genPredictor:         Library -> String
-  genCpp:               Node (Flat) -> CPP
+  genCpp:               String or Node (Flat) -> CPP
   fileToDepTree:        String or File (String) -> Node (Dep)
   getInitialNodeString: String -> Node (Flat)
   getInitialNode:       File (String) -> Node (Flat)
@@ -17,13 +17,31 @@ public class BPLangProg {
   */
   public static void main(String[] args) throws Exception {
 
-    if(args.length != 1) {
+    if(args.length == 0) {
       System.out.println("ERROR: QueryProg <file path>");
       System.exit(0);
     }
     
     Random rand = new Random(127);
+    
+    // gen <number of predictors to generate> <max size of each predictor in lines>
+    if(args[0].equals("gen")) {
+      int numPredictors = Integer.parseInt(args[1]);
+      int maxSize = Integer.parseInt(args[2]);
+      Runtime r = Runtime.getRuntime();
+      r.exec("rm -rf predictors");
+      r.exec("mkdir -p predictors");
+      
+      for(int i = 0; i < numPredictors; i++) {
+	String pred = genPredictor("library", maxSize, rand);
+	genCpp(pred);
+	r.exec("mkdir -p predictors/predictor_"+i);
+	r.exec("mv predictor.cc predictors/predictor_"+i);
+	r.exec("cp modules/predictor.h predictors/predictor_"+i);
+      }
+    }
 
+    /*
     Node tree1 = getInitialNode(args[0]);
     String pred = genPredictor("library", rand);
     System.out.println("\n\n"+pred+"\n\n");
@@ -39,6 +57,7 @@ public class BPLangProg {
 
     System.out.println(tree1+"\n+\n"+tree2+"\n=\n"+tree3);
     genCpp(tree3);
+    */
   }
   
   public static int max(int a, int b) {
@@ -224,14 +243,15 @@ public class BPLangProg {
   }
 
   // Library -> BP (String)
-  public static String genPredictor(String file, Random rand) throws Exception {
+  public static String genPredictor(String file, int maxSize, Random rand) throws Exception {
     Node node = getInitialNode(file);
     //System.out.println(node);
     Map<String, Node> library = genConfigMap(node);
     
     // Use constrained random method of generating a predictor
     
-    int predictorSize = rand.nextInt(10)+1; // size 1-10 elements
+    int predictorSize = rand.nextInt(maxSize)+1; // size 1-maxSize elements
+    System.out.println("Size chosen: "+predictorSize);
     List<String> vars = new ArrayList<String>();
     addInputKeywords(vars);
 
@@ -351,9 +371,22 @@ public class BPLangProg {
     return predictor; //fileToDepTree(predictor, false);
   }
   
+  
+  // String -> CPP
+  public static void genCpp(String str) throws Exception {
+    FileWriter fstream = new FileWriter("predictor.cc");
+    BufferedWriter out = new BufferedWriter(fstream);
+    
+    // Write bp language as comment in program
+    out.write("/*\n"+str+"*/\n\n");
+    out.close();
+
+    genCpp(getInitialNodeString(str));
+  }
+
   // Node (Flat) -> CPP
   public static void genCpp(Node tree) throws Exception {
-    FileWriter fstream = new FileWriter("predictor.cc");
+    FileWriter fstream = new FileWriter("predictor.cc", true);
     BufferedWriter out = new BufferedWriter(fstream);
     //System.out.println(tree);
     // Headers
