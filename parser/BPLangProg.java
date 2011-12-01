@@ -142,7 +142,8 @@ public class BPLangProg {
     
     out.write("using namespace std;\n");
     out.write("#include \"cbp3_def.h\"\n");
-    out.write("#include \"cbp3_framework.h\"\n\n");
+    out.write("#include \"cbp3_framework.h\"\n");
+    out.write("#include \"predictor.h\"\n\n");
     
     // Global variable definition
     for(Node n : tree.children) {
