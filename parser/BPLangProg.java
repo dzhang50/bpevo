@@ -22,15 +22,18 @@ public class BPLangProg {
       System.exit(0);
     }
     
+    Random rand = new Random(127);
+
     Node tree1 = getInitialNode(args[0]);
-    String pred = genPredictor("library");
-    genCpp(getInitialNodeString(pred));
+    String pred = genPredictor("library", rand);
     System.out.println("\n\n"+pred+"\n\n");
-    System.out.println(fileToDepTree(pred, false));
+    //System.out.println(fileToDepTree(pred, false));
 
     Node tree2 = getInitialNodeString(pred);
 
-    Node tree3 = matePredictors(tree1, tree2);
+    Node tree3 = matePredictors(tree1, tree2, rand);
+    System.out.println(tree1+"\n+\n"+tree2+"\n=\n"+tree3);
+    genCpp(tree3);
   }
   
   public static int max(int a, int b) {
@@ -52,44 +55,149 @@ public class BPLangProg {
   }
 
   // Node(Flat) + Node(Flat) -> Node(Flat)
-  public static Node matePredictors(Node node1, Node node2) {
-    Random rand = new Random(13);
+  public static Node matePredictors(Node node1, Node node2, Random rand) throws Exception {
     
     int maxChanges = max(1, min(node1.children.size(), node2.children.size())/2);
     int numChanges = rand.nextInt(maxChanges)+1;
     System.out.println("node1: "+node1.children.size()+", node2: "+node2.children.size());
     System.out.println("maxChanges: "+maxChanges+", numChanges: "+numChanges);
 
-    Node node;
+    Node node, nodeSrc;
     if(rand.nextInt(2) == 0) {
       node = new Node(node1);
+      nodeSrc = node2; // not modifying, so no deep copy
     }
     else {
       node = new Node(node2);
+      nodeSrc = node1;
     }
     
     int changed = 0;
+    int chooseRand = 1;
+    int chooseIdx = -1;
+    int totalLoops = 0;
     while(changed < numChanges) {
-      int sel = rand.nextInt(node.children.size());
-      String selOutput = node.children.get(sel).children.get(0).msg;
-      System.out.println(selOutput);
-      int contains = 0;
-      for(Node n : node.children) {
+      int idx1;
+      int idx2 = -1;
+      if(chooseRand == 1) {
+	idx1 = rand.nextInt(node.children.size());
       }
-      changed++;
+      else {
+	idx1 = chooseIdx;
+      }
+
+      String selOutput = node.children.get(idx1).children.get(0).msg;
+      for(int i = 0; i < nodeSrc.children.size(); i++) {
+	Node n = nodeSrc.children.get(i);
+	if(n.children.get(0).msg.equals(selOutput)) {
+	  System.out.println("Found "+n.children.get(0).msg+" in "+n.msg+" on line "+i);
+	  idx2 = i;
+	}
+      }
+      
+      if(idx2 != -1) {
+	System.out.println("Swapping node1["+idx1+"] with node2["+idx2+"]\n");
+	node.children.set(idx1, new Node(nodeSrc.children.get(idx2)));
+	
+	// Check result to make sure there are no loops or illegal inputs
+	List<String> validWires = new ArrayList<String>();
+	List<String> allWires = new ArrayList<String>();
+	addInputKeywords(validWires);
+	addInputKeywords(allWires);
+	Node tmp = new Node(node);
+	tmp.children = tmp.children.subList(0, idx1);
+
+	validWires.addAll(nodeOutputs(tmp));
+	allWires.addAll(nodeOutputs(node));
+	
+	for(Node n : node.children.get(idx1).children) {
+	  if(n.type == NodeType.INPUT_ID) {
+	    // if a wire is not defined
+	    if(!validWires.contains(n.msg)) {
+	      // randomly select a valid wire
+	      n.msg = validWires.get(rand.nextInt(validWires.size()));
+	    }
+	  }
+	}
+	changed++;
+      }
+      totalLoops++;
+
+      //watchdog
+      if(totalLoops > numChanges*1000) {
+	throw new Exception("ERROR: Likely deadlock detected by watchdog when mating predictors "+node1+"\n\n"+node2);
+      }
     }
     return node;
   }
   
+  public static Node mutatePredictor(Node node, Random rand) {
+    int sel = rand.nextInt(2);
+    
+    if(sel == 0) {
+      // Change a wire connection
+      int nodeIdx = -1;
+      do {
+	nodeIdx = rand.nextInt(node.children.size());
+      } while (numType(node.children.get(nodeIdx), NodeType.INPUT_ID) == 0);
+
+      Node tmp = new Node(node);
+      tmp.children = tmp.children.subList(0, nodeIdx);
+      
+      List<String> validWires = new ArrayList<String>();
+      addInputKeywords(validWires);
+      validWires.addAll(nodeOutputs(tmp));
+      
+      int inputIdx = rand.nextInt();
+      node.children.get(nodeIdx).children.get(inputIdx).msg = validWires.get(rand.nextInt(validWires.size()));
+    }
+    else {
+      // Change a parameter
+      int nodeIdx = -1;
+      
+      // Find a node that has a parameter
+      do {
+	nodeIdx = rand.nextInt(node.children.size());
+      } while(numType(node.children.get(nodeIdx), NodeType.PARAM) == 0);
+
+      // TODO... gotta deal with parameter ranges
+    }
+  }
+
+
+  public static List<String> nodeOutputs(Node node) {
+    List<String> outputs = new ArrayList<String>();
+
+    for(Node n : node.children) {
+      for(Node tmp : n.children) {
+	if(tmp.type == NodeType.OUTPUT_ID) {
+	  outputs.add(tmp.msg);
+	}
+      }
+    }
+    System.out.println("Outputs: "+outputs);
+    return outputs;
+  }
+      
+  public static int numType(Node node, NodeType t) {
+    int num = 0;
+    for(Node n : node.children) {
+      if(n.type == t) {
+	num++;
+      }
+    }
+
+    return num;
+  }
+
   // Library -> BP (String)
-  public static String genPredictor(String file) throws Exception {
+  public static String genPredictor(String file, Random rand) throws Exception {
     Node node = getInitialNode(file);
     //System.out.println(node);
     Map<String, Node> library = genConfigMap(node);
     
     // Use constrained random method of generating a predictor
     
-    Random rand = new Random(128);
     int predictorSize = rand.nextInt(10)+1; // size 1-10 elements
     List<String> vars = new ArrayList<String>();
     addInputKeywords(vars);
