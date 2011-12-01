@@ -227,6 +227,21 @@ public class BPLangProg {
     out.write("#include \"predictor.h\"\n\n");
     
     // Global variable definition
+    out.write("cbp3_cycle_activity_t *cycle_info;\n");
+    out.write("int numFetch;\n");
+    out.write("int numRetire;\n");
+    out.write("uint32_t fe_ptr;\n");
+    out.write("uint32_t retire_ptr;\n");
+    out.write("cbp3_uop_dynamic_t *fe_uop;\n");
+    out.write("cbp3_uop_dynamic_t *retire_uop;\n\n");
+    
+    out.write("dynamic_bitset<> readValid;\n");
+    out.write("dynamic_bitset<> writeValid;\n");
+    out.write("dynamic_bitset<> readPC;\n");
+    out.write("dynamic_bitset<> writePC;\n");
+    out.write("dynamic_bitset<> writeTaken;\n");
+    out.write("dynamic_bitset<> writeMispredicted;\n");
+    
     for(Node n : tree.children) {
       out.write(n.msg+" ");
       if(n.children.get(0).type == NodeType.OUTPUT_ID) {
@@ -268,19 +283,19 @@ public class BPLangProg {
     // Predictor Run a Cycle
     out.write("void PredictorRunACycle() {\n");
     out.write("  // get info about what uops are processed at each pipeline stage\n");
-    out.write("  const cbp3_cycle_activity_t *cycle_info = get_cycle_info();\n");
+    out.write("  cycle_info = get_cycle_info();\n");
     
-    out.write("  int numFetch = cycle_info->num_fetch;\n");
-    out.write("  int numRetire = cycle_info->num_retire;\n");
+    out.write("  numFetch = cycle_info->num_fetch;\n");
+    out.write("  numRetire = cycle_info->num_retire;\n");
     out.write("  for(int i = 0; i < max(numFetch, numRetire); i++) {\n");
-    out.write("    uint32_t fe_ptr = cycle_info->fetch_q[i];\n");
-    out.write("    uint32_t retire_ptr = cycle_info->retire_q[i];\n");
-    out.write("    const cbp3_uop_dynamic_t *fe_uop = &fetch_entry(fe_ptr)->uop;\n");
-    out.write("    const cbp3_uop_dynamic_t *retire_uop = &rob_entry(rob_ptr)->uop;\n\n");
+    out.write("    fe_ptr = cycle_info->fetch_q[i];\n");
+    out.write("    retire_ptr = cycle_info->retire_q[i];\n");
+    out.write("    fe_uop = &fetch_entry(fe_ptr)->uop;\n");
+    out.write("    retire_uop = &rob_entry(rob_ptr)->uop;\n\n");
     
     out.write("    // Assign static variables\n");
-    out.write("    dynamic_bitset<> readValid = dynamic_bitset<>(1, 0);\n");
-    out.write("    dynamic_bitset<> writeValid = dynamic_bitset<>(1, 0);\n");
+    out.write("    readValid = dynamic_bitset<>(1, 0);\n");
+    out.write("    writeValid = dynamic_bitset<>(1, 0);\n");
     out.write("    if((i < numFetch) && (fe_uop->type & IS_BR_CONDITIONAL)) {\n");
     out.write("      readValid[0] = true;\n");
     out.write("    }\n");
@@ -288,14 +303,15 @@ public class BPLangProg {
     out.write("      writeValid[0] = true;\n");
     out.write("    }\n\n");
     
-    out.write("    dynamic_bitset<> readPC = dynamic_bitset<>(32, fe_uop->pc);\n");
-    out.write("    dynamic_bitset<> writePC = dynamic_bitset<>(32, retire_uop->pc);\n");
-    out.write("    dynamic_bitset<> writeTaken = dynamic_bitset<>(1, retire_uop->br_taken);\n");
-    out.write("    dynamic_bitset<> writeMispredicted = dynamic_bitset<>(1, 0);\n");
+    out.write("    readPC = dynamic_bitset<>(32, fe_uop->pc);\n");
+    out.write("    writePC = dynamic_bitset<>(32, retire_uop->pc);\n");
+    out.write("    writeTaken = dynamic_bitset<>(1, retire_uop->br_taken);\n");
+    out.write("    writeMispredicted = dynamic_bitset<>(1, 0);\n");
     out.write("    writeMispredicted[0] = (rob_entry(rob_ptr)->last_pred == retire_uop->br_taken);\n\n");
     
     out.write("    dynamic_bitset<> prediction = dynamic_bitset<>(1,0);\n\n");
-
+    out.write("    // For special modules, some additional processing may be necessary\n");
+    out.write("    updateSpecialState();\n\n");
     out.write("    // ---------------- GENERATED LOGIC HERE -----------------\n\n\n");
     int inputFound = 0;
     for(Node n : tree.children) {
