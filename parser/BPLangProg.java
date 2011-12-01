@@ -5,8 +5,16 @@ import java.lang.Exception;
 import java.io.*;
 
 public class BPLangProg {
+  
+  /* Available functions:
 
-
+  genPredictor:         Library -> String
+  genCpp:               Node (Flat) -> CPP
+  fileToDepTree:        String or File (String) -> Node (Dep)
+  getInitialNodeString: String -> Node (Flat)
+  getInitialNode:       File (String) -> Node (Flat)
+  buildTree:            Node (Flat) -> Node (Dep)
+  */
   public static void main(String[] args) throws Exception {
 
     if(args.length != 1) {
@@ -14,15 +22,69 @@ public class BPLangProg {
       System.exit(0);
     }
     
-    //Node tree1 = fileToDepTree(args[0], true);
+    Node tree1 = fileToDepTree(args[0], true);
     String pred = genPredictor("library");
     genCpp(getInitialNodeString(pred));
-    //System.out.println(tree);
+    System.out.println("\n\n"+pred+"\n\n");
+    System.out.println(fileToDepTree(pred, false));
+
+    Node tree2 = getInitialNodeString(pred);
+
+    Node tree3 = matePredictors(tree1, tree2);
   }
   
+  public static int max(int a, int b) {
+    if(a > b) {
+      return a;
+    }
+    else {
+      return b;
+    }
+  }
+
+  public static int min(int a, int b) {
+    if(a < b) {
+      return a;
+    }
+    else {
+      return b;
+    }
+  }
+
+  // Node(Flat) + Node(Flat) -> Node(Flat)
+  public static Node matePredictors(Node node1, Node node2) {
+    Random rand = new Random(13);
+    
+    int maxChanges = max(1, min(node1.children.size(), node2.children.size())/2);
+    int numChanges = rand.nextInt(maxChanges)+1;
+    System.out.println("node1: "+node1.children.size()+", node2: "+node2.children.size());
+    System.out.println("maxChanges: "+maxChanges+", numChanges: "+numChanges);
+
+    Node node;
+    if(rand.nextInt(2) == 0) {
+      node = new Node(node1);
+    }
+    else {
+      node = new Node(node2);
+    }
+    
+    int changed = 0;
+    while(changed < numChanges) {
+      int sel = rand.nextInt(node.children.size());
+      String selOutput = node.children.get(sel).children.get(0).msg;
+      System.out.println(selOutput);
+      int contains = 0;
+      for(Node n : node.children) {
+      }
+      changed++;
+    }
+    return node;
+  }
+  
+  // Library -> BP (String)
   public static String genPredictor(String file) throws Exception {
     Node node = getInitialNode(file);
-    System.out.println(node);
+    //System.out.println(node);
     Map<String, Node> library = genConfigMap(node);
     
     // Use constrained random method of generating a predictor
@@ -48,11 +110,9 @@ public class BPLangProg {
     String moduleName = "";
     String moduleOutput = "";
     Node module;
-    String moduleInputs = "";
     int moduleIdx = 0;
     List<String> dep;
     for(int i = 0; i < predictorSize; i++) {
-      moduleInputs = "";
       dep = new ArrayList<String>();
 
       // Randomly select a structure
@@ -145,15 +205,16 @@ public class BPLangProg {
       predictor+="\n";
     }
     
-    System.out.println(predictor);
+    //System.out.println(predictor);
 
     return predictor; //fileToDepTree(predictor, false);
   }
   
+  // Node (Flat) -> CPP
   public static void genCpp(Node tree) throws Exception {
     FileWriter fstream = new FileWriter("predictor.cc");
     BufferedWriter out = new BufferedWriter(fstream);
-    System.out.println(tree);
+    //System.out.println(tree);
     // Headers
     out.write("#include <stdio.h>\n");
     out.write("#include <cassert>\n");
@@ -296,6 +357,7 @@ public class BPLangProg {
     return map;
   }
   
+  // String or File (String) -> Node (Dep)
   public static Node fileToDepTree(String file, boolean isFile) throws Exception {
     Node node;
     if(isFile) {
@@ -305,19 +367,20 @@ public class BPLangProg {
       node = getInitialNodeString(file);
     }
 
-    System.out.println("\nInitial tree structure:");
-    System.out.println(node.toString());
+    //System.out.println("\nInitial tree structure:");
+    //System.out.println(node.toString());
 	
     // Generate new tree based off this structure
     List<String> inputKeywords = new ArrayList<String>();
     addInputKeywords(inputKeywords);
     Node nodeTree = buildTree("prediction", node, inputKeywords);
     
-    System.out.println(nodeTree.toString());
+    //System.out.println(nodeTree.toString());
     
     return nodeTree;
   }
   
+  // String -> Node (Flat)
   public static Node getInitialNodeString(String str) throws Exception {
     ANTLRStringStream in = new ANTLRStringStream(str);
     BPLangLexer lexer = new BPLangLexer(in);
@@ -328,6 +391,7 @@ public class BPLangProg {
     return node;
   }
 
+  // File (String) -> Node (Flat)
   public static Node getInitialNode(String file) throws Exception {
     ANTLRStringStream in = new ANTLRFileStream(file);
     BPLangLexer lexer = new BPLangLexer(in);
@@ -370,7 +434,7 @@ public class BPLangProg {
     }
   }
 
-
+  // Node (Flat) -> Node (Dep)
   public static Node buildTree(String outputName, Node rawNodes, List<String> filter) throws Exception {  
     boolean predictionFound = false;
     //System.out.println("Finding node corresponding to output: "+outputName);

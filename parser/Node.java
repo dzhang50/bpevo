@@ -30,6 +30,22 @@ public class Node {
     for ( Node n : kids ) 
       children.add( n );
   }
+  
+  public Node(Node x) {
+    this.type = x.type;
+    this.instanceName = x.instanceName;
+    this.upperBound = x.upperBound;
+    this.lowerBound = x.lowerBound;
+    this.percentage = x.percentage;
+    this.msg = x.msg;
+    this.nodePtr = x.nodePtr; // no deep copy
+    this.children = new ArrayList<Node>();
+
+    // Recursively deep copy the children
+    for(Node n : x.children) {
+      this.children.add(new Node(n));
+    }
+  }
 
   public static Node rawNode( String s ) {
     Node result = new Node( NodeType.UNDEF );
