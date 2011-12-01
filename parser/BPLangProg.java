@@ -221,10 +221,10 @@ public class BPLangProg {
     out.write("#include <string.h>\n");
     out.write("#include <inttypes.h>\n\n");
     
-    out.write("using namespace std;\n");
     out.write("#include \"cbp3_def.h\"\n");
     out.write("#include \"cbp3_framework.h\"\n");
     out.write("#include \"predictor.h\"\n\n");
+    out.write("using namespace std;\n\n");
     
     // Global variable definition
     out.write("cbp3_cycle_activity_t *cycle_info;\n");
@@ -241,7 +241,7 @@ public class BPLangProg {
     out.write("dynamic_bitset<> writePC;\n");
     out.write("dynamic_bitset<> writeTaken;\n");
     out.write("dynamic_bitset<> writeMispredicted;\n\n\n");
-    
+    /*
     for(Node n : tree.children) {
       out.write(n.msg+" ");
       if(n.children.get(0).type == NodeType.OUTPUT_ID) {
@@ -251,20 +251,20 @@ public class BPLangProg {
 	throw new Exception("ERROR: OUTPUT_ID not found");
       }
     }
-    
+    */
     // Predictor Init
     int outFound = 0;
     int paramFound = 0;
-    out.write("\n\nvoid PredictorInit() {}\n\n");
-/*
-    out.write("\n\nvoid PredictorInit() {\n");
+
+    //out.write("\n\nvoid PredictorInit() {\n");
     for(Node n : tree.children) {
       outFound = 0;
       paramFound = 0;
-      out.write("  ");
+      //out.write("  ");
+      out.write(n.msg+" ");
       for(Node val : n.children) {
 	if((outFound == 0) && (val.type == NodeType.OUTPUT_ID)) {
-	  out.write("module_"+val.msg+" = new "+n.msg+"(");
+	  out.write("module_"+val.msg+" = "+n.msg+"(");
 	  outFound = 1;
 	}
 	if(val.type == NodeType.PARAM) {
@@ -277,8 +277,8 @@ public class BPLangProg {
       }
       out.write(");\n");
     }
-    out.write("}\n\n");
-*/  
+    out.write("\n\n");
+  
     // Predictor Reset
     out.write("void PredictorReset() {}\n\n");
     
