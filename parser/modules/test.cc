@@ -28,7 +28,8 @@ int main()
  
     for (ulong i = 0; i < output.size(); i++)
     {
-	cout << output[i] << ", MSB:" << MSB(output[i])<< endl;
+//	cout << output[i] << ", MSB:" << MSB().Invocate(output[i])<< endl;
+	cout << bimodal.Invocate(dynamic_bitset<> (4,i),in_data,  dynamic_bitset<> (4,0), dynamic_bitset<> (1,0ul)) << ", MSB:" << MSB().Invocate(output[i])<< endl;
     }
 /*
     vector<dynamic_bitset<> > single;
@@ -36,10 +37,10 @@ int main()
     single.push_back(output[10]);
 */
     
-    dynamic_bitset<> XORed = XOR(output);
+    dynamic_bitset<> XORed = XOR().Invocate(output[5], output[10]);
     cout << "XOR:" << endl << XORed << endl;
 
-    dynamic_bitset<> equal = EQUAL(output);
+    dynamic_bitset<> equal = EQUAL().Invocate(output[0], output[0]);
     cout << "EQUAL:" << endl << equal << endl;
 
     
@@ -70,7 +71,7 @@ int main()
     cout << endl;
     for (ulong i = 0; i < output.size(); i++)
     {
-	cout << "2-bit counter[" << i << "]:" << output[i] << ", MSB:"<<MSB(output[i]) << endl;
+	cout << "2-bit counter[" << i << "]:" << output[i] << ", MSB:"<< MSB().Invocate(twoBitCounter.Invocate(dynamic_bitset<> (1,i),dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,0ul))) << endl;
     }
     
     

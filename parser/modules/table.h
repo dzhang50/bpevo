@@ -19,6 +19,8 @@ public:
     Table (ulong numEntriesInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
+    dynamic_bitset<> Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
     void Initialize();
 };
 
@@ -29,8 +31,11 @@ public:
     Table_Cntr(ulong numEntriesInput, ulong widthInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
+    dynamic_bitset<> Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
     void Initialize();
 };
+
 
 Table::Table (ulong numEntriesInput)
 {
@@ -61,7 +66,7 @@ vector<dynamic_bitset<> > Table::Invocate(vector<dynamic_bitset<> > out_idx, dyn
 	output.push_back(table[index]);
     }
 
-    if (MSB(in_enable).test(0))
+    if (MSB().Invocate(in_enable).test(0))
     {
 	index = in_idx.to_ulong();
 	index %= numEntries;
@@ -69,6 +74,15 @@ vector<dynamic_bitset<> > Table::Invocate(vector<dynamic_bitset<> > out_idx, dyn
     }
 
     return output;
+}
+
+dynamic_bitset<> Table::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
+{
+    vector<dynamic_bitset<> > vector;
+    vector.push_back(out_idx);
+    return (Table::Invocate(vector, in_data, in_idx, in_enable)[0]);
+    
 }
 
 Table_Cntr::Table_Cntr(ulong numEntriesInput, ulong widthInput) : Table(numEntriesInput), width(widthInput)
@@ -100,7 +114,7 @@ vector<dynamic_bitset<> > Table_Cntr::Invocate(vector<dynamic_bitset<> > out_idx
 	output.push_back(table[index]);
     }
 
-    if (MSB(in_enable).test(0))
+    if (MSB().Invocate(in_enable).test(0))
     {
 	index = in_idx.to_ulong();
 	index %= numEntries;
@@ -119,6 +133,15 @@ vector<dynamic_bitset<> > Table_Cntr::Invocate(vector<dynamic_bitset<> > out_idx
     }
 
     return output;
+}
+
+dynamic_bitset<> Table_Cntr::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
+				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable)
+{
+    vector<dynamic_bitset<> > vector;
+    vector.push_back(out_idx);
+    return (Table_Cntr::Invocate(vector, in_data, in_idx, in_enable)[0]);
+    
 }
 
 
