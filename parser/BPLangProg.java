@@ -2,6 +2,7 @@ import org.antlr.runtime.*;
 import java.util.*;
 //import antlr.*;
 import java.lang.Exception;
+import java.io.*;
 
 public class BPLangProg {
 
@@ -14,11 +15,12 @@ public class BPLangProg {
     }
     
     //Node tree1 = fileToDepTree(args[0], true);
-    Node tree = genPredictor("library");
-    System.out.println(tree);
+    String pred = genPredictor("library");
+    genCpp(getInitialNodeString(pred));
+    //System.out.println(tree);
   }
   
-  public static Node genPredictor(String file) throws Exception {
+  public static String genPredictor(String file) throws Exception {
     Node node = getInitialNode(file);
     System.out.println(node);
     Map<String, Node> library = genConfigMap(node);
@@ -35,7 +37,13 @@ public class BPLangProg {
     for(int i = 0; i < libArray.size(); i++) {
       libCntArray.add(0);
     }
-
+    
+    // Init dependency array to empty
+    List<List<String>> dep = new ArrayList<List<String>>();
+    for(int i = 0; i < vars.size(); i++) {
+      dep.add(new ArrayList());
+    }
+    
     String predictor = "";
     String moduleName = "";
     String moduleOutput = "";
@@ -109,7 +117,6 @@ public class BPLangProg {
       if(inputFound != 0) {
 	predictor += "}";
       }
-
       predictor += ";";
 
       // Assuming only 1 output, add to output list --- FIXME
@@ -118,13 +125,136 @@ public class BPLangProg {
       predictor+="\n";
     }
     
-    // Assign the prediction output value
-    
     System.out.println(predictor);
 
-    return fileToDepTree(predictor, false);
+    return predictor; //fileToDepTree(predictor, false);
   }
   
+  public static void genCpp(Node tree) throws Exception {
+    FileWriter fstream = new FileWriter("predictor.cc");
+    BufferedWriter out = new BufferedWriter(fstream);
+    System.out.println(tree);
+    // Headers
+    out.write("#include <stdio.h>\n");
+    out.write("#include <cassert>\n");
+    out.write("#include <string.h>\n");
+    out.write("#include <inttypes.h>\n\n");
+    
+    out.write("using namespace std;\n");
+    out.write("#include \"cbp3_def.h\"\n");
+    out.write("#include \"cbp3_framework.h\"\n\n");
+    
+    // Global variable definition
+    for(Node n : tree.children) {
+      out.write(n.msg+" ");
+      if(n.children.get(0).type == NodeType.OUTPUT_ID) {
+	  out.write("module_"+n.children.get(0).msg+";\n");
+      }
+      else {
+	throw new Exception("ERROR: OUTPUT_ID not found");
+      }
+    }
+    
+    // Predictor Init
+    int outFound = 0;
+    int paramFound = 0;
+    out.write("\n\nvoid PredictorInit() {\n");
+    for(Node n : tree.children) {
+      outFound = 0;
+      paramFound = 0;
+      out.write("  ");
+      for(Node val : n.children) {
+	if((outFound == 0) && (val.type == NodeType.OUTPUT_ID)) {
+	  out.write("module_"+val.msg+" = new "+n.msg+"(");
+	  outFound = 1;
+	}
+	if(val.type == NodeType.PARAM) {
+	  if(paramFound != 0) {
+	    out.write(", ");
+	  }
+	  out.write(val.msg);
+	  paramFound = 1;
+	}
+      }
+      out.write(");\n");
+    }
+    out.write("}\n\n");
+    
+    // Predictor Reset
+    out.write("void PredictorReset() {}\n\n");
+    
+    // Predictor Run a Cycle
+    out.write("void PredictorRunACycle() {\n");
+    out.write("  // get info about what uops are processed at each pipeline stage\n");
+    out.write("  const cbp3_cycle_activity_t *cycle_info = get_cycle_info();\n");
+    
+    out.write("  int numFetch = cycle_info->num_fetch;\n");
+    out.write("  int numRetire = cycle_info->num_retire;\n");
+    out.write("  for(int i = 0; i < max(numFetch, numRetire); i++) {\n");
+    out.write("    uint32_t fe_ptr = cycle_info->fetch_q[i];\n");
+    out.write("    uint32_t retire_ptr = cycle_info->retire_q[i];\n");
+    out.write("    const cbp3_uop_dynamic_t *fe_uop = &fetch_entry(fe_ptr)->uop;\n");
+    out.write("    const cbp3_uop_dynamic_t *retire_uop = &rob_entry(rob_ptr)->uop;\n\n");
+    
+    out.write("    // Assign static variables\n");
+    out.write("    dynamic_bitset<> readValid = dynamic_bitset<>(1, 0);\n");
+    out.write("    dynamic_bitset<> writeValid = dynamic_bitset<>(1, 0);\n");
+    out.write("    if((i < numFetch) && (fe_uop->type & IS_BR_CONDITIONAL)) {\n");
+    out.write("      readValid[0] = true;\n");
+    out.write("    }\n");
+    out.write("    if((i < numRetire) && (retire_uop->type & IS_BR_CONDITIONAL)) {\n");
+    out.write("      writeValid[0] = true;\n");
+    out.write("    }\n\n");
+    
+    out.write("    dynamic_bitset<> readPC = dynamic_bitset<>(32, fe_uop->pc);\n");
+    out.write("    dynamic_bitset<> writePC = dynamic_bitset<>(32, retire_uop->pc);\n");
+    out.write("    dynamic_bitset<> writeTaken = dynamic_bitset<>(1, retire_uop->br_taken);\n");
+    out.write("    dynamic_bitset<> writeMispredicted = dynamic_bitset<>(1, 0);\n");
+    out.write("    writeMispredicted[0] = (rob_entry(rob_ptr)->last_pred == retire_uop->br_taken);\n\n");
+    
+    out.write("    dynamic_bitset<> prediction = dynamic_bitset<>(1,0);\n\n");
+
+    out.write("    // ---------------- GENERATED LOGIC HERE -----------------\n\n\n");
+    int inputFound = 0;
+    for(Node n : tree.children) {
+      outFound = 0;
+      inputFound = 0;
+      out.write("    ");
+      for(Node val : n.children) {
+	if((outFound == 0) && (val.type == NodeType.OUTPUT_ID)) {
+	  
+	  out.write("dynamic_bitset<> "+val.msg+" = module_"+val.msg+".Invocate(");
+	  outFound = 1;
+	}
+	if(val.type == NodeType.INPUT_ID) {
+	  if(inputFound != 0) {
+	    out.write(", ");
+	  }
+	  out.write(val.msg);
+	  inputFound = 1;
+	}
+      }
+      out.write(");\n");
+    }
+    
+    // Wrap everything up
+    
+    out.write("\n\n\n    // Report prediction\n");
+    out.write("    if(readValid[0]) {\n");
+    out.write("      assert(report_pred(fe_ptr, false, prediction[0]));\n");
+    out.write("    }\n");
+    out.write("  }\n");
+    out.write("}\n\n\n");
+
+    out.write("void PredictorRunEnd() {}\n\n");
+
+    out.write("void PredictorExit() {}\n\n");
+
+
+    out.close();
+  }
+
+
   public static int log2(int val) {
     int x = 0;
 
