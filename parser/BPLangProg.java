@@ -126,52 +126,76 @@ public class BPLangProg {
     int chooseIdx = -1;
     int totalLoops = 0;
     while(changed < numChanges) {
-      int idx1;
+      int idx1 = -1;
       int idx2 = -1;
+
+      // Choose a node from nodeSrc to add to node
       if(chooseRand == 1) {
-	idx1 = rand.nextInt(node.children.size());
+	//idx1 = rand.nextInt(node.children.size());
+	idx2 = rand.nextInt(nodeSrc.children.size());
       }
       else {
-	idx1 = chooseIdx;
+	idx2 = chooseIdx;
       }
+      String selOutput = nodeSrc.children.get(idx2).children.get(0).msg;
 
-      String selOutput = node.children.get(idx1).children.get(0).msg;
-      for(int i = 0; i < nodeSrc.children.size(); i++) {
-	Node n = nodeSrc.children.get(i);
+      // See if the node chosen from nodeSrc exists in "node"
+      for(int i = 0; i < node.children.size(); i++) {
+	Node n = node.children.get(i);
 	if(n.children.get(0).msg.equals(selOutput)) {
 	  System.out.println("Found "+n.children.get(0).msg+" in "+n.msg+" on line "+i);
-	  idx2 = i;
+	  idx1 = i;
 	}
       }
       
-      if(idx2 != -1) {
-	System.out.println("Swapping node1["+idx1+"] with node2["+idx2+"]\n");
+      if(idx1 != -1) {
+	System.out.println("Replacing node1["+idx1+"] with node2["+idx2+"]\n");
 	node.children.set(idx1, new Node(nodeSrc.children.get(idx2)));
-	
-	// Check result to make sure there are no loops or illegal inputs
-	List<String> validWires = new ArrayList<String>();
-	List<String> allWires = new ArrayList<String>();
-	addInputKeywords(validWires);
-	addInputKeywords(allWires);
-	Node tmp = new Node(node);
-	tmp.children = tmp.children.subList(0, idx1);
-
-	validWires.addAll(nodeOutputs(tmp));
-	allWires.addAll(nodeOutputs(node));
-	
-	for(Node n : node.children.get(idx1).children) {
-	  if(n.type == NodeType.INPUT_ID) {
-	    // if a wire is not defined
-	    if(!validWires.contains(n.msg)) {
+      }
+      else {
+	System.out.println(selOutput+" doesn't exist, adding a new node");
+	idx1 = rand.nextInt(nodeSrc.children.size());
+	node.children.add(idx1, new Node(nodeSrc.children.get(idx2)));
+      }
+      
+      // Check result to make sure there are no loops or illegal inputs
+      List<String> validWires = new ArrayList<String>();
+      List<String> allWires = new ArrayList<String>();
+      addInputKeywords(validWires);
+      addInputKeywords(allWires);
+      Node tmp = new Node(node);
+      tmp.children = tmp.children.subList(0, idx1);
+      
+      validWires.addAll(nodeOutputs(tmp));
+      allWires.addAll(nodeOutputs(node));
+      
+      chooseRand = 1;
+      for(Node n : node.children.get(idx1).children) {
+	if(n.type == NodeType.INPUT_ID){ 
+	  // if a wire is not valid
+	  if(!validWires.contains(n.msg)) {
+	    // if defined later on in the file, or if we're already extending, or if last iteration
+	    if(allWires.contains(n.msg) || chooseRand == 0 || (changed+1 == numChanges)) {
 	      // randomly select a valid wire
 	      n.msg = validWires.get(rand.nextInt(validWires.size()));
 	    }
+	    else {
+	      chooseRand = 0;
+	      // Find idx
+	      for(int i = 0; i < nodeSrc.children.size(); i++) {
+		Node m = nodeSrc.children.get(i);
+		if((m.children.get(0).type == NodeType.OUTPUT_ID) && (m.children.get(0).msg.equals(n.msg))) {
+		  chooseIdx = i;
+		  System.out.println("Choosing special module "+m.msg+" at nodeSrc idx "+i);
+		}
+	      }
+	    }
 	  }
 	}
-	changed++;
       }
+      changed++;
       totalLoops++;
-
+      
       //watchdog
       if(totalLoops > numChanges*1000) {
 	throw new Exception("ERROR: Likely deadlock detected by watchdog when mating predictors "+node1+"\n\n"+node2);
