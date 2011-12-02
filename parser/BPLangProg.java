@@ -9,7 +9,8 @@ public class BPLangProg {
   /* Available functions:
 
   genPredictor:         Library -> String
-  genCpp:               String or Node (Flat) -> CPP
+  genCpp:               String or Node (Flat) -> CPP (File)
+  genBPLang:            String -> BPLang (File)
   fileToDepTree:        String or File (String) -> Node (Dep)
   getInitialNodeString: String -> Node (Flat)
   getInitialNode:       File (String) -> Node (Flat)
@@ -23,22 +24,46 @@ public class BPLangProg {
     }
     
     Random rand = new Random(127);
+    Runtime r = Runtime.getRuntime();
     
-    // gen <number of predictors to generate> <max size of each predictor in lines>
+    // gen <number of predictors to generate> <max size of each predictor in lines> <rand seed>
     if(args[0].equals("gen")) {
       int numPredictors = Integer.parseInt(args[1]);
       int maxSize = Integer.parseInt(args[2]);
-      Runtime r = Runtime.getRuntime();
+      rand = new Random(Integer.parseInt(args[3]));
       r.exec("rm -rf predictors");
       r.exec("mkdir -p predictors");
       
       for(int i = 0; i < numPredictors; i++) {
 	String pred = genPredictor("library", maxSize, rand);
 	genCpp(pred);
+	genBPLang(pred);
 	r.exec("mkdir -p predictors/predictor_"+i);
 	r.exec("mv predictor.cc predictors/predictor_"+i);
+	r.exec("mv bplang predictors/predictor_"+i);
 	r.exec("cp modules/predictor.h predictors/predictor_"+i);
       }
+    }
+    // mate <path to mother> <path to father> <path to child directory> <num mutations> <rand seed>
+    else if(args[0].equals("mate")) {
+      Node tree1 = getInitialNode(args[1]);
+      Node tree2 = getInitialNode(args[2]);
+      String childPath = args[3];
+      int numMutations = Integer.parseInt(args[4]);
+      rand = new Random(Integer.parseInt(args[5]));
+      
+      Node child = matePredictors(tree1, tree2, rand);
+      for(int i = 0; i < numMutations; i++) {
+	//mutatePredictor(child, rand);          BROKEN
+      }
+      
+      String n = nodeToString(child);
+      
+      genCpp(child);
+      genBPLang(n);
+
+      r.exec("mv predictor.cc "+childPath);
+      r.exec("mv bplang "+childPath);
     }
 
     /*
@@ -82,7 +107,7 @@ public class BPLangProg {
   public static Node matePredictors(Node node1, Node node2, Random rand) throws Exception {
     
     int maxChanges = max(1, min(node1.children.size(), node2.children.size())/2);
-    int numChanges = rand.nextInt(maxChanges)+1;
+    int numChanges = maxChanges; //rand.nextInt(maxChanges)+1;
     System.out.println("node1: "+node1.children.size()+", node2: "+node2.children.size());
     System.out.println("maxChanges: "+maxChanges+", numChanges: "+numChanges);
 
@@ -172,7 +197,12 @@ public class BPLangProg {
       addInputKeywords(validWires);
       validWires.addAll(nodeOutputs(tmp));
       
-      int inputIdx = rand.nextInt();
+      Node selNode = node.children.get(nodeIdx);
+
+      int inputIdx;
+      do {
+	inputIdx = rand.nextInt(selNode.children.size());
+      }while (false);
       node.children.get(nodeIdx).children.get(inputIdx).msg = validWires.get(rand.nextInt(validWires.size()));
     }
     else {
@@ -227,7 +257,7 @@ public class BPLangProg {
 	}
       }
     }
-    System.out.println("Outputs: "+outputs);
+    //System.out.println("Outputs: "+outputs);
     return outputs;
   }
       
@@ -371,6 +401,16 @@ public class BPLangProg {
     return predictor; //fileToDepTree(predictor, false);
   }
   
+  // String -> BPLang
+  public static void genBPLang(String str) throws Exception {
+    FileWriter fstream = new FileWriter("bplang");
+    BufferedWriter out = new BufferedWriter(fstream);
+    
+    // Write bp language as comment in program
+    out.write(str);
+    out.close();
+  }
+
   
   // String -> CPP
   public static void genCpp(String str) throws Exception {
@@ -384,6 +424,58 @@ public class BPLangProg {
     genCpp(getInitialNodeString(str));
   }
 
+  // Node (Flat) -> String
+  public static String nodeToString(Node tree) {
+    String str = "";
+    for(Node n : tree.children) {
+      int outputFound = 0;
+      int paramFound = 0;
+      int inputFound = 0;
+      for(Node desc : n.children) {
+	if(desc.type == NodeType.OUTPUT_ID) {
+	  if(outputFound != 0) {
+	    str += ", ";
+	  }
+	  str += desc.msg;
+	  outputFound = 1;
+	}
+	else if(desc.type == NodeType.PARAM) {
+	  if(paramFound != 0) {
+	    str += ", ";
+	  }
+	  else {
+	    str += " = "+n.msg+"#(";
+	  }
+	  str += desc.msg;
+	  paramFound = 1;
+	}
+	else if(desc.type == NodeType.INPUT_ID) {
+	  if(inputFound != 0) {
+	    str += ", ";
+	  }
+	  else {
+	    if(paramFound == 0) {
+	      str += " = "+n.msg+" {";
+	    }
+	    else {
+	      str += ") {";
+	    }
+	  }
+	  str += desc.msg;
+	  inputFound = 1;
+	}
+      }
+      if(inputFound == 0) {
+	str += ");\n";
+      }
+      else {
+	str += "};\n";
+      }
+    }
+
+    return str;
+  }
+  
   // Node (Flat) -> CPP
   public static void genCpp(Node tree) throws Exception {
     FileWriter fstream = new FileWriter("predictor.cc", true);
