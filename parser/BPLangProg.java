@@ -54,7 +54,7 @@ public class BPLangProg {
       
       Node child = matePredictors(tree1, tree2, rand);
       for(int i = 0; i < numMutations; i++) {
-	//mutatePredictor(child, rand);          BROKEN
+	mutatePredictor(child, rand);
       }
       
       String n = nodeToString(child);
@@ -180,10 +180,11 @@ public class BPLangProg {
     return node;
   }
   
-  public static void mutatePredictor(Node node, Random rand) {
+  public static void mutatePredictor(Node node, Random rand) throws Exception {
     int sel = rand.nextInt(2);
+    Node config = getInitialNode("library");
     
-    if(sel == 0 || sel == 1) {
+    if(sel == 0) {
       // Change a wire connection
       int nodeIdx = -1;
       do {
@@ -214,7 +215,44 @@ public class BPLangProg {
 	nodeIdx = rand.nextInt(node.children.size());
       } while(numType(node.children.get(nodeIdx), NodeType.PARAM) == 0);
 
-      // TODO... gotta deal with parameter ranges
+      String nodeType = node.children.get(nodeIdx).msg;
+
+      //System.out.println(config);
+
+      // Get param bounds
+      int selParam = rand.nextInt(numType(node.children.get(nodeIdx), NodeType.PARAM));
+      int upper = 0, lower = 0;
+      int x = 0;
+      for(Node n : config.children) {
+	if(n.msg.equals(nodeType)) {
+	  for(Node m : n.children) {
+	    if(x == selParam && m.type == NodeType.PARAMCONFIG) {
+	      upper = Integer.parseInt(m.upperBound);
+	      lower = Integer.parseInt(m.lowerBound);
+	    }
+	    x++;
+	  }
+	}
+      }
+      
+      // Set parameter
+      x = 0;
+      int tmp;
+      int newVal=0, oldVal=0;
+      for(Node n : node.children.get(nodeIdx).children) {
+	if(n.type == NodeType.PARAM) {
+	  if(x == selParam) {
+	    tmp = rand.nextInt(upper-lower+1) + lower;
+	    newVal = 1 << log2(tmp);
+
+	    oldVal = Integer.parseInt(n.msg);
+	    n.msg = Integer.toString(newVal);
+	  }
+	  x++;
+	}
+      }
+      
+      System.out.println("CHANGE PARAM: "+nodeType+", upper: "+upper+", lower: "+lower+", oldVal: "+oldVal+", newVal: "+newVal);
     }
   }
 
