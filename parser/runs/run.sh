@@ -1,7 +1,7 @@
 #!/bin/sh
 if [ "$1" = "" ] ; then
     for predictor in ../bin/* ; do
-	./run.sh $predictor
+	./run.sh $(basename $predictor)
     done
 
     exit 1
