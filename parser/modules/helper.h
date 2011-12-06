@@ -14,6 +14,8 @@
 using namespace boost;
 using namespace std;
 
+size_t lengthlimit = sizeof(ulong) * 8;
+
 namespace boost {
     template <typename B, typename A>
     std::size_t hash_value(const boost::dynamic_bitset<B, A>& bs) {            

@@ -3,6 +3,7 @@ AND {null%0, null%0};
 ADD {null%0, null%0};
 OR  {null%0, null%0};
 CONCAT {null%0, null%0};
+MUX {null%0, null%0, null%0};
 GHR_FETCH#([128:8]%100);
 GHR_RETIRE#([128:8]%100);
 TABLE_2BITCNTR#([2048:64]%70) {readPC%80, writeTaken%50, writePC%80, writeValid%70};

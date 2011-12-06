@@ -71,13 +71,21 @@ vector<dynamic_bitset<> > TABLE::Invocate(vector<dynamic_bitset<> > out_idx, dyn
     
     for (ulong i = 0; i < numReads; i++)
     {
+	//cout << "table read index\n" << endl;
+	if (out_idx[i].size() > lengthlimit)
+	    out_idx[i].resize(lengthlimit);
+	assert (out_idx[i].size() <= 64);
 	index = out_idx[i].to_ulong();
 	index %= numEntries;
 	output.push_back(table[index]);
     }
 
-    if (MSB().Invocate(in_enable).test(0))
+    if (in_enable.test(0))
     {
+	//cout << "table write index\n" << endl;
+	if (in_idx.size() > lengthlimit)
+	    in_idx.resize(lengthlimit);
+	assert (in_idx.size() <= 64);
 	index = in_idx.to_ulong();
 	index %= numEntries;
 	table[index] = in_data;
@@ -119,19 +127,30 @@ vector<dynamic_bitset<> > TABLE_CNTR::Invocate(vector<dynamic_bitset<> > out_idx
     
     for (ulong i = 0; i < numReads; i++)
     {
+	//cout << "counter table read index\n" << endl;
+	if (out_idx[i].size() > lengthlimit)
+	    out_idx[i].resize(lengthlimit);
+	assert (out_idx[i].size() <= 64);
 	index = out_idx[i].to_ulong();
 	index %= numEntries;
 	output.push_back(table[index]);
     }
 
-    if (MSB().Invocate(in_enable).test(0))
+    if (in_enable.test(0))
     {
+	//cout << "counter table write index\n" << endl;
+	if (in_idx.size() > lengthlimit)
+	    in_idx.resize(lengthlimit);
+	assert (in_idx.size() <= 64);
 	index = in_idx.to_ulong();
 	index %= numEntries;
 
 	bool increment = in_data.any();
 	ulong max = ((1 << width) -1);
-
+	//cout << "counter table value\n" << endl;
+	if (table[index].size() > lengthlimit)
+	    table[index].resize(lengthlimit);
+	assert (table[index].size() <= 64);
 	ulong counter = table[index].to_ulong();
 	if (increment && (counter < max))
 	    counter++;

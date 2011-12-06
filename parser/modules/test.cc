@@ -49,11 +49,23 @@ int main()
     dynamic_bitset<> ADDed = ADD().Invocate(output[7], output[8]);
     cout << "ADD:" << endl << ADDed << endl;
 
+    ADDed = ADD().Invocate(output[13], output[12]);
+    cout << "ADD:" << endl << ADDed << endl;
+
+    ADDed = ADD().Invocate(output[3], output[11]);
+    cout << "ADD:" << endl << ADDed << endl;
+
     dynamic_bitset<> ORed = OR().Invocate(output[13], output[4]);
     cout << "OR:" << endl << ORed << endl;
 
     dynamic_bitset<> CONCATed = CONCAT().Invocate(output[13], output[4]);
     cout << "CONCAT:" << endl << CONCATed << endl;
+
+    dynamic_bitset<> MUXed1 = MUX().Invocate(dynamic_bitset<>(1,0ul),output[13], output[4]);
+    cout << "MUX:" << endl << MUXed1 << endl;
+
+    dynamic_bitset<> MUXed2 = MUX().Invocate(dynamic_bitset<>(2,2ul),output[13], output[4]);
+    cout << "MUX:" << endl << MUXed2 << endl;
 
     dynamic_bitset<> equal = equalInst.Invocate(output[0], output[0]);
     cout << "EQUAL:" << endl << equal << endl;

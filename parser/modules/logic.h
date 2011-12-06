@@ -6,7 +6,14 @@
 #include "helper.h"
 #endif
 
-enum OPERATION{AND_OP, XOR_OP, ADD_OP, OR_OP};
+enum OPERATION{AND_OP, XOR_OP, OR_OP};
+
+class MUX
+{
+public:
+    dynamic_bitset<> Invocate (dynamic_bitset<> sel, vector<dynamic_bitset<> > inputs);
+    dynamic_bitset<> Invocate (dynamic_bitset<> sel, dynamic_bitset<> in1, dynamic_bitset<> in2);
+};
 
 class CONCAT
 {
@@ -58,21 +65,21 @@ public:
 
 dynamic_bitset<> PerformLogic (vector<dynamic_bitset<> > inputs, OPERATION op)
 {
-    size_t minSize;
+    size_t maxSize;
 
     size_t numInputs = inputs.size();   
     assert(numInputs > 0);
 
     dynamic_bitset<> result = inputs[0];
-    ulong resultSum = result.to_ulong();
-    minSize = result.size();
+
+    maxSize = result.size();
 
     for (size_t i = 1; i < numInputs; i++)
     {
-	if (inputs[i].size() < minSize)
-	    minSize = inputs[i].size();
-	result.resize(minSize);
-	inputs[i].resize(minSize);
+	if (inputs[i].size() > maxSize)
+	    maxSize = inputs[i].size();
+	result.resize(maxSize);
+	inputs[i].resize(maxSize);
 
 	switch(op)
 	{
@@ -82,9 +89,6 @@ dynamic_bitset<> PerformLogic (vector<dynamic_bitset<> > inputs, OPERATION op)
 	case XOR_OP:
 	    result ^= inputs[i];
 	    break;
-	case ADD_OP:
-	    resultSum += inputs[i].to_ulong();
-	    break;
 	case OR_OP:
 	    result |= inputs[i];
 	    break;
@@ -93,7 +97,27 @@ dynamic_bitset<> PerformLogic (vector<dynamic_bitset<> > inputs, OPERATION op)
 	}
     }
 
-    return (op == ADD_OP)?dynamic_bitset<>(minSize, resultSum):result;
+    return result;
+}
+
+dynamic_bitset<> MUX::Invocate (dynamic_bitset<> sel, vector<dynamic_bitset<> > inputs)
+{
+    size_t numInputs = inputs.size();
+    //size_t lengthlimit = sizeof(ulong) * 8;
+    if (sel.size() > lengthlimit)
+	sel.resize(lengthlimit);
+    //cout << "MUX index\n" << endl;
+    assert (sel.size() <= 64);
+    size_t index = (sel.to_ulong() % numInputs);
+    return inputs[index];
+}
+
+dynamic_bitset<> MUX::Invocate (dynamic_bitset<> sel, dynamic_bitset<> in1, dynamic_bitset<> in2)
+{
+    vector<dynamic_bitset<> > vector;
+    vector.push_back(in1);
+    vector.push_back(in2);
+    return MUX::Invocate(sel, vector);
 }
 
 dynamic_bitset<> CONCAT::Invocate (vector<dynamic_bitset<> > inputs)
@@ -133,15 +157,51 @@ dynamic_bitset<> OR::Invocate (dynamic_bitset<> in1, dynamic_bitset<> in2)
 
 dynamic_bitset<> ADD::Invocate (vector<dynamic_bitset<> > inputs)
 {
-    return (PerformLogic(inputs, ADD_OP));
+    assert(false);
 }
 
 dynamic_bitset<> ADD::Invocate (dynamic_bitset<> in1, dynamic_bitset<> in2)
 {
-    vector<dynamic_bitset<> > vector;
-    vector.push_back(in1);
-    vector.push_back(in2);
-    return ADD::Invocate(vector);
+    size_t resultSize = max(in1.size(), in2.size()) + 1;
+    dynamic_bitset<> result(resultSize);
+    size_t minSize = min(in1.size(), in2.size());
+    bool carry = false;
+    uint temp = 0;
+    size_t i;
+    for (i = 0; i < minSize; i++)
+    {
+	temp = carry + in1[i] + in2[i];
+	//cout << "temp:" << temp << endl;
+	switch(temp)
+	{
+	case 0:
+	    result[i] = false;
+	    carry = false;
+	    //assert (!carry && !in1[i] && !in2[i]);
+	    break;
+	case 1:
+	    result[i] = true;
+	    carry = false;
+	    //assert (!carry && !in1[i] && !in2[i]);
+	    break;
+	case 2:
+	    result[i] = false;
+	    carry = true;
+	    break;
+	case 3:
+	    result[i] = true;
+	    carry = true;
+	    break;
+	default:
+	    assert(false);
+	}
+    }
+
+    if (carry)
+	result[i] = true;
+
+    return result;
+    
 }
 
 dynamic_bitset<> AND::Invocate (vector<dynamic_bitset<> > inputs)
