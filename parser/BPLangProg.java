@@ -33,7 +33,7 @@ public class BPLangProg {
       int numPredictors = Integer.parseInt(args[2]);
       int maxSize = Integer.parseInt(args[3]);
       rand = new Random(Integer.parseInt(args[4]));
-      runSysCmd("mkdir predictors"); //r.exec("mkdir predictors");
+      runSysCmd("mkdir "+rootDir); //r.exec("mkdir predictors");
       
       for(int i = 0; i < numPredictors; i++) {
 	String pred = genPredictor("library", maxSize, rand);
