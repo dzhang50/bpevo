@@ -15,16 +15,12 @@ HEADERS = cbp3_framework.h ./readerlib/cbp3_reader.h ./readerlib/cbp3_def.h pred
 
 all : $(notdir $(wildcard $(SRCDIR)/*))
 
-% : $(SRCDIR)/%/predictor.cc
-	mkdir -p $(OUTDIR)
-	cp $(SRCDIR)/$@/predictor.cc ./
-	make cbp3
-	mv cbp3 $(OUTDIR)/$@
+% : $(SRCDIR)/%/predictor.cc cbp3_framework.o
+	$(CXX) -c $(CXXFLAGS) -o $(SRCDIR)/$@/predictor.o $(SRCDIR)/$@/predictor.cc
+	$(CXX) -o $(OUTDIR)/$@ cbp3_framework.o $(SRCDIR)/$@/predictor.o -Lreaderlib -lcbp3_trace.$(FORMAT) 
 
-cbp3 :
-	$(CXX) -c $(CXXFLAGS) -o cbp3_framework.o cbp3_framework.cc
-	$(CXX) -c $(CXXFLAGS) -o predictor.o predictor.cc
-	$(CXX) -o cbp3 cbp3_framework.o predictor.o -Lreaderlib -lcbp3_trace.$(FORMAT) 
+cbp3_framework.o:
+	$(CXX) -c $(CXXFLAGS) -o cbp3_framework.o cbp3_framework.cc	
 
 java:
 	javac -cp . NodeType.java

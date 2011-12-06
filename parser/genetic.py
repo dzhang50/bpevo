@@ -5,11 +5,11 @@
 
 import os, sys, re, glob, random;
 
-POPULATION = 4; # MUST BE DIVISIBLE BY 4
+POPULATION = 16; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 60;
 SEED = 983;
 MAX_THREADS = 12;
-MUTATION_RATE = 1; # Number of mutations per mating
+MUTATION_RATE = 2; # Number of mutations per mating
 NUM_ITER = 10;
 
 # Function for getting the new random number seed
@@ -75,7 +75,7 @@ for iteration in range(NUM_ITER):
     # Next, simulate every predictor (changedir to $PARSER/runs)
     os.chdir("runs");
     os.system("rm -rf results/*");
-    os.system("run.py "+str(MAX_THREADS));
+    os.system("./run.py "+str(MAX_THREADS));
 
     # Get the results, taken from cull.py (changedir to $PARSER/runs/results)
     os.chdir('results')

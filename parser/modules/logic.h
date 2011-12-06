@@ -63,6 +63,12 @@ public:
     dynamic_bitset<> Invocate (dynamic_bitset<> input);
 };
 
+class NOT
+{
+public:
+    dynamic_bitset<> Invocate (dynamic_bitset<> input);
+};
+
 dynamic_bitset<> PerformLogic (vector<dynamic_bitset<> > inputs, OPERATION op)
 {
     size_t maxSize;
@@ -264,6 +270,11 @@ dynamic_bitset<> MSB::Invocate (dynamic_bitset<> input)
 {
     bool msbSet = input[input.size()-1];
     return (msbSet?(dynamic_bitset<>(1,1ul)):(dynamic_bitset<>(1, 0ul)));
+}
+
+dynamic_bitset<> NOT::Invocate (dynamic_bitset<> input)
+{
+    return ~input;
 }
 
 

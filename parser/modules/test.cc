@@ -70,6 +70,9 @@ int main()
     dynamic_bitset<> equal = equalInst.Invocate(output[0], output[0]);
     cout << "EQUAL:" << endl << equal << endl;
 
+    dynamic_bitset<> NOTed = NOT().Invocate(output[5]);
+    cout << "NOT:" << endl << NOTed << endl;
+
     
     ulong width = 2ul;
     ulong twoBitEntries = 3ul;
