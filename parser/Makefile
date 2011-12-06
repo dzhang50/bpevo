@@ -54,4 +54,4 @@ clean :
 	-rm -f *Lexer*
 	-rm -f *Parser*
 	-rm -rf predictors
-
+	-rm -f *~
