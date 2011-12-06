@@ -11,7 +11,8 @@ processes = set()
 max_processes = int(sys.argv[1])
 
 for name in files:
-    processes.add(subprocess.Popen([command, name]))
+    #print name
+    processes.add(subprocess.Popen([command, os.path.basename(name)]))
     if len(processes) >= max_processes:
         os.wait()
         processes.difference_update(

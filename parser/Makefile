@@ -5,7 +5,7 @@
 # 32 for 32-bit system and 64 for 64-bit system
 FORMAT = 64
 
-CXXFLAGS = -O3 -Wall -Ireaderlib -std=c++0x
+CXXFLAGS = -O3 -Wall -Ireaderlib -std=c++0x 
 CXX = g++
 
 objects = cbp3_framework.o predictor.o
@@ -24,7 +24,7 @@ all : $(notdir $(wildcard $(SRCDIR)/*))
 cbp3 :
 	$(CXX) -c $(CXXFLAGS) -o cbp3_framework.o cbp3_framework.cc
 	$(CXX) -c $(CXXFLAGS) -o predictor.o predictor.cc
-	$(CXX) -o cbp3 cbp3_framework.o predictor.o -Lreaderlib -lcbp3_trace.$(FORMAT)
+	$(CXX) -o cbp3 cbp3_framework.o predictor.o -Lreaderlib -lcbp3_trace.$(FORMAT) 
 
 java:
 	javac -cp . NodeType.java

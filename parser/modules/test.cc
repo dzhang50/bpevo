@@ -52,6 +52,9 @@ int main()
     dynamic_bitset<> ORed = OR().Invocate(output[13], output[4]);
     cout << "OR:" << endl << ORed << endl;
 
+    dynamic_bitset<> CONCATed = CONCAT().Invocate(output[13], output[4]);
+    cout << "CONCAT:" << endl << CONCATed << endl;
+
     dynamic_bitset<> equal = equalInst.Invocate(output[0], output[0]);
     cout << "EQUAL:" << endl << equal << endl;
 

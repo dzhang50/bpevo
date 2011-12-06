@@ -7,6 +7,14 @@
 #endif
 
 enum OPERATION{AND_OP, XOR_OP, ADD_OP, OR_OP};
+
+class CONCAT
+{
+public:
+    dynamic_bitset<> Invocate (vector<dynamic_bitset<> > inputs);
+    dynamic_bitset<> Invocate (dynamic_bitset<> in1, dynamic_bitset<> in2);
+};
+
 class ADD
 {
 public:
@@ -86,6 +94,28 @@ dynamic_bitset<> PerformLogic (vector<dynamic_bitset<> > inputs, OPERATION op)
     }
 
     return (op == ADD_OP)?dynamic_bitset<>(minSize, resultSum):result;
+}
+
+dynamic_bitset<> CONCAT::Invocate (vector<dynamic_bitset<> > inputs)
+{
+    ostringstream bitsetConcat;
+    size_t numInputs = inputs.size();
+
+    for (size_t i = 0; i < numInputs; i++)
+    {
+	bitsetConcat << inputs[i];
+    }
+
+    dynamic_bitset<> returnVal(bitsetConcat.str());
+    return returnVal;
+}
+
+dynamic_bitset<> CONCAT::Invocate (dynamic_bitset<> in1, dynamic_bitset<> in2)
+{
+    vector<dynamic_bitset<> > vector;
+    vector.push_back(in1);
+    vector.push_back(in2);
+    return CONCAT::Invocate(vector);
 }
 
 dynamic_bitset<> OR::Invocate (vector<dynamic_bitset<> > inputs)

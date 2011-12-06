@@ -7,14 +7,19 @@ results = glob.glob('*.result')
 predictors = []
 for predictor in results:
     trimmedName = predictor.rpartition('.')[0]
+    #print trimmedName
     #with open(predictor, 'r') as f:
     f = open(predictor, 'r')
     for line in f:
         if line.find('Average conditional MPPKI') >= 0 :
             number = line.rpartition(': ')[2].strip()
             break
-
-    predictors.append((trimmedName, int(number)))
+        
+    #print (trimmedName, int(number))
+    if len(number) > 0:
+        predictors.append((trimmedName, int(number)))
+    else:
+        print trimmedName, ' failed'
 
 predictors.sort(key=lambda predictor: predictor[1])
 

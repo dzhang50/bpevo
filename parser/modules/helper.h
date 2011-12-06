@@ -7,6 +7,9 @@
 #include <boost/functional/hash.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <cassert>
+#include <string>
+#include <iostream>
+#include <sstream>
 
 using namespace boost;
 using namespace std;
