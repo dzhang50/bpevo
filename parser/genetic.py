@@ -120,7 +120,7 @@ for iteration in range(NUM_ITER):
     os.system("ls -l predictors");
     print "mv predictors old_predictors/predictors_"+str(iteration);
     os.system("mv predictors old_predictors/predictors_"+str(iteration));
-    
+    os.system("mkdir predictors");
     # randomly merge predictors using the tournament method in Emer97
     matePred = emerSel(predictors);
     
