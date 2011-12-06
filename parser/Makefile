@@ -53,4 +53,5 @@ clean :
 	-rm -f *.tokens
 	-rm -f *Lexer*
 	-rm -f *Parser*
+	-rm -rf predictors
 
