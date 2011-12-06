@@ -64,6 +64,7 @@ public class BPLangProg {
 
       r.exec("mv predictor.cc "+childPath);
       r.exec("mv bplang "+childPath);
+      r.exec("cp modules/predictor.h "+childPath);
     }
 
     /*
@@ -154,7 +155,7 @@ public class BPLangProg {
       }
       else {
 	System.out.println(selOutput+" doesn't exist, adding a new node");
-	idx1 = rand.nextInt(nodeSrc.children.size());
+	idx1 = rand.nextInt(node.children.size());
 	node.children.add(idx1, new Node(nodeSrc.children.get(idx2)));
       }
       
