@@ -60,16 +60,17 @@ os.system("make java");
 os.system("rm -rf predictors");
 os.system("rm -f results");
 os.system("echo '' > results");
-os.system('mkdir -p old_predictors')
+os.system('mkdir predictors')
 
 for iteration in range(NUM_ITER):
     # First, compile and generate the initial batch
-    gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
+    gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors/iter_"+str(iteration)+" "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
     print gen;
     os.system(gen);
 
     # Generate an executable for every predictor
-    os.system("make");
+    os.system("rm -rf bin/*");
+    os.system("make SRCDIR=predictors/iter_"+str(iteration));
 
     # Next, simulate every predictor (changedir to $PARSER/runs)
     os.chdir("runs");
@@ -116,29 +117,25 @@ for iteration in range(NUM_ITER):
             f.write(contents[x].rstrip()+", "+str(predictors[x][1])+"\n");
     f.close();
     
-    # Copy old predictors into archive (changedir to $PARSER)
-    os.system("ls -l predictors");
-    print "mv predictors old_predictors/predictors_"+str(iteration);
-    os.system("mv predictors old_predictors/predictors_"+str(iteration));
-    os.system("mkdir predictors");
     # randomly merge predictors using the tournament method in Emer97
     matePred = emerSel(predictors);
     
     # For each pair, call the mating function twice 
     # (to preserve same population size)
     newIter = 0;
+    os.system("mkdir predictors/iter_"+str(iteration+1));
     for pred in matePred:
-        path = "old_predictors/predictors_"+str(iteration);
+        path = "predictors/iter_"+str(iteration);
         pred1 = path + "/" + pred[0]+"/bplang";
         pred2 = path + "/" + pred[1]+"/bplang";
-        os.system("mkdir predictors/predictor_"+str(newIter));
-        run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
+        os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
+        run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
         print run;
         os.system(run);
 
         newIter = newIter+1;
-        os.system("mkdir predictors/predictor_"+str(newIter));
-        run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
+        os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
+        run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
         print run;
         os.system(run);
         
