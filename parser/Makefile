@@ -49,4 +49,8 @@ clean :
 	rm -f $(objects)
 	rm -f $(OUTDIR)/*
 	rm -f predictor.cc
+	-rm -f *.class
+	-rm -f *.tokens
+	-rm -f *Lexer*
+	-rm -f *Parser*
 
