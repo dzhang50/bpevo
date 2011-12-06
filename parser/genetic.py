@@ -131,11 +131,13 @@ for iteration in range(NUM_ITER):
         path = "old_predictors/predictors_"+str(iteration);
         pred1 = path + "/" + pred[0]+"/bplang";
         pred2 = path + "/" + pred[1]+"/bplang";
+        os.system("mkdir predictors/predictor_"+str(newIter));
         run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
         print run;
         os.system(run);
 
         newIter = newIter+1;
+        os.system("mkdir predictors/predictor_"+str(newIter));
         run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
         print run;
         os.system(run);

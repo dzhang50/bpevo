@@ -37,11 +37,11 @@ public class BPLangProg {
       
       for(int i = 0; i < numPredictors; i++) {
 	String pred = genPredictor("library", maxSize, rand);
-	genCpp(pred);
-	genBPLang(pred);
 	r.exec("mkdir -p predictors/predictor_"+i);
-	r.exec("mv predictor.cc predictors/predictor_"+i+"/");
-	r.exec("mv bplang predictors/predictor_"+i+"/");
+	genCpp("predictors/predictor_"+i+"/predictor.cc",pred);
+	genBPLang("predictors/predictor_"+i+"/bplang", pred);
+	//r.exec("mv predictor.cc predictors/predictor_"+i+"/");
+	//r.exec("mv bplang predictors/predictor_"+i+"/");
 	r.exec("cp modules/predictor.h predictors/predictor_"+i+"/");
       }
     }
@@ -53,18 +53,18 @@ public class BPLangProg {
       int numMutations = Integer.parseInt(args[4]);
       rand = new Random(Integer.parseInt(args[5]));
       
-      Node child = matePredictors(tree1, tree2, "library", rand);
+      Node child = matePredictors(tree1, tree2, rand);
       for(int i = 0; i < numMutations; i++) {
-	mutatePredictor(child, rand);
+	mutatePredictor(child, "library", rand);
       }
       
       String n = nodeToString(child);
       
-      genCpp(child, "");
-      genBPLang(n);
+      genCpp(childPath+"/predictor.cc", child, "");
+      genBPLang(childPath+"/bplang", n);
 
-      r.exec("mv predictor.cc "+childPath);
-      r.exec("mv bplang "+childPath);
+      //r.exec("mv predictor.cc "+childPath);
+      //r.exec("mv bplang "+childPath);
       r.exec("cp modules/predictor.h "+childPath);
     }
     // view <path to bplang>
@@ -214,7 +214,7 @@ public class BPLangProg {
     return node;
   }
   
-  public static void mutatePredictor(Node node, String library, Random rand) throws Exception {
+  public static void mutatePredictor(Node node, String file, Random rand) throws Exception {
     int sel = rand.nextInt(2);
     Node config = getInitialNode("library");
     
@@ -285,19 +285,19 @@ public class BPLangProg {
 	  x++;
 	}
       }
-      else {
-	//---------------- Add a node ------------------------
-	
-	Node lib = getInitialNode(file);
-	Map<String, Node> library = genConfigMap(lib);
-	List<String> libArray = new ArrayList<String>(library.keySet());
-	
-	
-	String tmp = nodeToString(node);
-	
-      }
       
       System.out.println("CHANGE PARAM: "+nodeType+", upper: "+upper+", lower: "+lower+", oldVal: "+oldVal+", newVal: "+newVal);
+    }
+    else {
+      //---------------- Add a node ------------------------
+      
+      Node lib = getInitialNode(file);
+      Map<String, Node> library = genConfigMap(lib);
+      List<String> libArray = new ArrayList<String>(library.keySet());
+      
+      
+      String tmp = nodeToString(node);
+      
     }
   }
 
@@ -485,8 +485,8 @@ public class BPLangProg {
   }
   
   // String -> BPLang
-  public static void genBPLang(String str) throws Exception {
-    FileWriter fstream = new FileWriter("bplang");
+  public static void genBPLang(String file, String str) throws Exception {
+    FileWriter fstream = new FileWriter(file);
     BufferedWriter out = new BufferedWriter(fstream);
     
     // Write bp language as comment in program
@@ -496,7 +496,7 @@ public class BPLangProg {
 
   
   // String -> CPP
-  public static void genCpp(String str) throws Exception {
+  public static void genCpp(String file, String str) throws Exception {
     //FileWriter fstream = new FileWriter("predictor.cc");
     //BufferedWriter out = new BufferedWriter(fstream);
     
@@ -504,7 +504,7 @@ public class BPLangProg {
     //out.write("/*\n"+str+"*/\n\n");
     //out.close();
 
-    genCpp(getInitialNodeString(str), "/*\n"+str+"*/\n\n");
+    genCpp(file, getInitialNodeString(str), "/*\n"+str+"*/\n\n");
   }
 
   // Node (Flat) -> String
@@ -560,8 +560,8 @@ public class BPLangProg {
   }
   
   // Node (Flat) -> CPP
-  public static void genCpp(Node tree, String header) throws Exception {
-    FileWriter fstream = new FileWriter("predictor.cc");
+  public static void genCpp(String file, Node tree, String header) throws Exception {
+    FileWriter fstream = new FileWriter(file);
     BufferedWriter out = new BufferedWriter(fstream);
     //System.out.println(tree);
     // Headers
