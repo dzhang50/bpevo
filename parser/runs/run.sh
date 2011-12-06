@@ -1,9 +1,11 @@
 #!/bin/sh
 if [ "$1" = "" ] ; then
-    for predictor in ../bin/* ; do
-	./run.sh $(basename $predictor)
-    done
+#    for predictor in ../bin/* ; do
+#	./run.sh $(basename $predictor) &
+#    done
 
+#    exit 1
+    echo "usage ./run.sh [predictor name]"
     exit 1
 fi
 
