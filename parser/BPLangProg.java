@@ -27,22 +27,20 @@ public class BPLangProg {
     Random rand = new Random(127);
     Runtime r = Runtime.getRuntime();
     
-    // gen <number of predictors to generate> <max size of each predictor in lines> <rand seed>
+    // gen <root dir> <number of predictors to generate> <max size of each predictor in lines> <rand seed>
     if(args[0].equals("gen")) {
-      int numPredictors = Integer.parseInt(args[1]);
-      int maxSize = Integer.parseInt(args[2]);
-      rand = new Random(Integer.parseInt(args[3]));
-      r.exec("rm -rf predictors");
-      r.exec("mkdir -p predictors");
+      String rootDir = args[1];
+      int numPredictors = Integer.parseInt(args[2]);
+      int maxSize = Integer.parseInt(args[3]);
+      rand = new Random(Integer.parseInt(args[4]));
+      runSysCmd("mkdir predictors"); //r.exec("mkdir predictors");
       
       for(int i = 0; i < numPredictors; i++) {
 	String pred = genPredictor("library", maxSize, rand);
-	r.exec("mkdir -p predictors/predictor_"+i);
-	genCpp("predictors/predictor_"+i+"/predictor.cc",pred);
-	genBPLang("predictors/predictor_"+i+"/bplang", pred);
-	//r.exec("mv predictor.cc predictors/predictor_"+i+"/");
-	//r.exec("mv bplang predictors/predictor_"+i+"/");
-	r.exec("cp modules/predictor.h predictors/predictor_"+i+"/");
+	runSysCmd("mkdir "+rootDir+"/predictor_"+i);
+	genCpp(rootDir+"/predictor_"+i+"/predictor.cc",pred);
+	genBPLang(rootDir+"/predictor_"+i+"/bplang", pred);
+	runSysCmd("cp modules/predictor.h "+rootDir+"/predictor_"+i+"/");
       }
     }
     // mate <path to mother> <path to father> <path to child directory> <num mutations> <rand seed>
@@ -65,7 +63,7 @@ public class BPLangProg {
 
       //r.exec("mv predictor.cc "+childPath);
       //r.exec("mv bplang "+childPath);
-      r.exec("cp modules/predictor.h "+childPath);
+      runSysCmd("cp modules/predictor.h "+childPath);
     }
     // view <path to bplang>
     else if(args[0].equals("view")) {
@@ -95,6 +93,23 @@ public class BPLangProg {
     */
   }
   
+  public static void runSysCmd(String cmd) throws Exception{
+    Runtime rt = Runtime.getRuntime();
+    Process proc = rt.exec(cmd);
+    InputStream is = proc.getInputStream();
+    InputStreamReader isr = new InputStreamReader(is);
+    BufferedReader br = new BufferedReader(isr);
+     
+    String line;
+    while ((line = br.readLine()) != null) {  
+      System.out.println(line);  // Prints the error lines
+    }
+ 
+    int exitVal = proc.waitFor();   
+    
+  }
+
+
   public static int max(int a, int b) {
     if(a > b) {
       return a;
