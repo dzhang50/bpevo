@@ -55,17 +55,19 @@ def emerSel(pred):
 
     return matePred;
 
-# First, compile and generate the initial batch
+# Setup
 os.system("make java");
-gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
-print gen;
-os.system(gen);
-
-# Make sure that there are no predictors to contaminate the run
 os.system("rm -rf predictors");
+os.system("rm -f results");
 os.system("echo '' > results");
+os.system('mkdir -p old_predictors')
 
 for iteration in range(NUM_ITER):
+    # First, compile and generate the initial batch
+    gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
+    print gen;
+    os.system(gen);
+
     # Generate an executable for every predictor
     os.system("make");
 
@@ -100,9 +102,12 @@ for iteration in range(NUM_ITER):
     contents = f.readlines();
     f.close();
 
+    print "len contents: "+str(len(contents));
+    print contents;
+
     f = open("results", "w");
     # Init
-    if(len(contents) == 0):
+    if(len(contents) == 1):
         for val in predictors:
             f.write(str(val[1])+"\n");
     # Append
@@ -112,7 +117,8 @@ for iteration in range(NUM_ITER):
     f.close();
     
     # Copy old predictors into archive (changedir to $PARSER)
-    os.system('mkdir -p old_predictors')
+    os.system("ls -l predictors");
+    print "mv predictors old_predictors/predictors_"+str(iteration);
     os.system("mv predictors old_predictors/predictors_"+str(iteration));
     
     # randomly merge predictors using the tournament method in Emer97
