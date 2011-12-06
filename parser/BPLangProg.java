@@ -59,7 +59,7 @@ public class BPLangProg {
       
       String n = nodeToString(child);
       
-      genCpp(child);
+      genCpp(child, "");
       genBPLang(n);
 
       r.exec("mv predictor.cc "+childPath);
@@ -476,14 +476,14 @@ public class BPLangProg {
   
   // String -> CPP
   public static void genCpp(String str) throws Exception {
-    FileWriter fstream = new FileWriter("predictor.cc");
-    BufferedWriter out = new BufferedWriter(fstream);
+    //FileWriter fstream = new FileWriter("predictor.cc");
+    //BufferedWriter out = new BufferedWriter(fstream);
     
     // Write bp language as comment in program
-    out.write("/*\n"+str+"*/\n\n");
-    out.close();
+    //out.write("/*\n"+str+"*/\n\n");
+    //out.close();
 
-    genCpp(getInitialNodeString(str));
+    genCpp(getInitialNodeString(str), "/*\n"+str+"*/\n\n");
   }
 
   // Node (Flat) -> String
@@ -539,8 +539,8 @@ public class BPLangProg {
   }
   
   // Node (Flat) -> CPP
-  public static void genCpp(Node tree) throws Exception {
-    FileWriter fstream = new FileWriter("predictor.cc", true);
+  public static void genCpp(Node tree, String header) throws Exception {
+    FileWriter fstream = new FileWriter("predictor.cc");
     BufferedWriter out = new BufferedWriter(fstream);
     //System.out.println(tree);
     // Headers
