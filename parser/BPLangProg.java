@@ -66,6 +66,14 @@ public class BPLangProg {
       r.exec("mv bplang "+childPath);
       r.exec("cp modules/predictor.h "+childPath);
     }
+    // view <path to bplang>
+    else if(args[0].equals("view")) {
+      Node tree = getInitialNode(args[1]);
+      List<String> inputKeywords = new ArrayList<String>();
+      addInputKeywords(inputKeywords);
+      Node nodeTree = buildTree("prediction", tree, inputKeywords);
+      System.out.println(nodeTree);
+    }
 
     /*
     Node tree1 = getInitialNode(args[0]);
