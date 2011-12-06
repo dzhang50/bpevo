@@ -13,6 +13,7 @@ public class BPLangProg {
   genBPLang:            String -> BPLang (File)
   fileToDepTree:        String or File (String) -> Node (Dep)
   getInitialNodeString: String -> Node (Flat)
+  nodeToString:         Node (Flat) -> String
   getInitialNode:       File (String) -> Node (Flat)
   buildTree:            Node (Flat) -> Node (Dep)
   */
@@ -39,9 +40,9 @@ public class BPLangProg {
 	genCpp(pred);
 	genBPLang(pred);
 	r.exec("mkdir -p predictors/predictor_"+i);
-	r.exec("mv predictor.cc predictors/predictor_"+i);
-	r.exec("mv bplang predictors/predictor_"+i);
-	r.exec("cp modules/predictor.h predictors/predictor_"+i);
+	r.exec("mv predictor.cc predictors/predictor_"+i+"/");
+	r.exec("mv bplang predictors/predictor_"+i+"/");
+	r.exec("cp modules/predictor.h predictors/predictor_"+i+"/");
       }
     }
     // mate <path to mother> <path to father> <path to child directory> <num mutations> <rand seed>
@@ -52,7 +53,7 @@ public class BPLangProg {
       int numMutations = Integer.parseInt(args[4]);
       rand = new Random(Integer.parseInt(args[5]));
       
-      Node child = matePredictors(tree1, tree2, rand);
+      Node child = matePredictors(tree1, tree2, "library", rand);
       for(int i = 0; i < numMutations; i++) {
 	mutatePredictor(child, rand);
       }
@@ -213,12 +214,12 @@ public class BPLangProg {
     return node;
   }
   
-  public static void mutatePredictor(Node node, Random rand) throws Exception {
+  public static void mutatePredictor(Node node, String library, Random rand) throws Exception {
     int sel = rand.nextInt(2);
     Node config = getInitialNode("library");
     
     if(sel == 0) {
-      // Change a wire connection
+      //---------- Change a wire connection -------------------
       int nodeIdx = -1;
       do {
 	nodeIdx = rand.nextInt(node.children.size());
@@ -239,8 +240,8 @@ public class BPLangProg {
       }while (false);
       node.children.get(nodeIdx).children.get(inputIdx).msg = validWires.get(rand.nextInt(validWires.size()));
     }
-    else {
-      // Change a parameter
+    else if(sel == 1){
+      //------------ Change a parameter -----------------------
       int nodeIdx = -1;
       
       // Find a node that has a parameter
@@ -283,6 +284,17 @@ public class BPLangProg {
 	  }
 	  x++;
 	}
+      }
+      else {
+	//---------------- Add a node ------------------------
+	
+	Node lib = getInitialNode(file);
+	Map<String, Node> library = genConfigMap(lib);
+	List<String> libArray = new ArrayList<String>(library.keySet());
+	
+	
+	String tmp = nodeToString(node);
+	
       }
       
       System.out.println("CHANGE PARAM: "+nodeType+", upper: "+upper+", lower: "+lower+", oldVal: "+oldVal+", newVal: "+newVal);
