@@ -64,7 +64,7 @@ os.system('mkdir -p old_predictors')
 
 for iteration in range(NUM_ITER):
     # First, compile and generate the initial batch
-    gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
+    gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
     print gen;
     os.system(gen);
 
