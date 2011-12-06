@@ -133,8 +133,8 @@ public class BPLangProg {
     
     int maxChanges = max(1, min(node1.children.size(), node2.children.size())/2);
     int numChanges = maxChanges; //rand.nextInt(maxChanges)+1;
-    System.out.println("node1: "+node1.children.size()+", node2: "+node2.children.size());
-    System.out.println("maxChanges: "+maxChanges+", numChanges: "+numChanges);
+    //System.out.println("node1: "+node1.children.size()+", node2: "+node2.children.size());
+    //System.out.println("maxChanges: "+maxChanges+", numChanges: "+numChanges);
 
     Node node, nodeSrc;
     if(rand.nextInt(2) == 0) {
@@ -168,17 +168,17 @@ public class BPLangProg {
       for(int i = 0; i < node.children.size(); i++) {
 	Node n = node.children.get(i);
 	if(n.children.get(0).msg.equals(selOutput)) {
-	  System.out.println("Found "+n.children.get(0).msg+" in "+n.msg+" on line "+i);
+	  //System.out.println("Found "+n.children.get(0).msg+" in "+n.msg+" on line "+i);
 	  idx1 = i;
 	}
       }
       
       if(idx1 != -1) {
-	System.out.println("Replacing node1["+idx1+"] with node2["+idx2+"]\n");
+	//System.out.println("Replacing node1["+idx1+"] with node2["+idx2+"]\n");
 	node.children.set(idx1, new Node(nodeSrc.children.get(idx2)));
       }
       else {
-	System.out.println(selOutput+" doesn't exist, adding a new node");
+	//System.out.println(selOutput+" doesn't exist, adding a new node");
 	idx1 = rand.nextInt(node.children.size());
 	node.children.add(idx1, new Node(nodeSrc.children.get(idx2)));
       }
@@ -211,7 +211,7 @@ public class BPLangProg {
 		Node m = nodeSrc.children.get(i);
 		if((m.children.get(0).type == NodeType.OUTPUT_ID) && (m.children.get(0).msg.equals(n.msg))) {
 		  chooseIdx = i;
-		  System.out.println("Choosing special module "+m.msg+" at nodeSrc idx "+i);
+		  //System.out.println("Choosing special module "+m.msg+" at nodeSrc idx "+i);
 		}
 	      }
 	    }
@@ -301,7 +301,7 @@ public class BPLangProg {
 	}
       }
       
-      System.out.println("CHANGE PARAM: "+nodeType+", upper: "+upper+", lower: "+lower+", oldVal: "+oldVal+", newVal: "+newVal);
+      //System.out.println("CHANGE PARAM: "+nodeType+", upper: "+upper+", lower: "+lower+", oldVal: "+oldVal+", newVal: "+newVal);
     }
     else {
       //---------------- Add a node ------------------------
@@ -379,7 +379,7 @@ public class BPLangProg {
     // Use constrained random method of generating a predictor
     
     int predictorSize = rand.nextInt(maxSize)+1; // size 1-maxSize elements
-    System.out.println("Size chosen: "+predictorSize);
+    //System.out.println("Size chosen: "+predictorSize);
     List<String> vars = new ArrayList<String>();
     addInputKeywords(vars);
 
