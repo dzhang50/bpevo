@@ -31,7 +31,7 @@ java:
 	javac -cp . Node.java
 	java -cp antlr-3.4-complete.jar org.antlr.Tool BPLang.g
 	javac -cp .:antlr-3.4-complete.jar BPLangProg.java
-	java -cp .:antlr-3.4-complete.jar BPLangProg gen 20 40 983
+	java -cp .:antlr-3.4-complete.jar BPLangProg gen 30 60 983
 #	mkdir -p predictors/mate
 #	java -cp .:antlr-3.4-complete.jar BPLangProg mate predictors/predictor_1/bplang predictors/predictor_3/bplang predictors/mate 1 42 
 
