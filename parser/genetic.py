@@ -122,12 +122,13 @@ for iteration in range(NUM_ITER):
     
     # For each pair, call the mating function twice 
     # (to preserve same population size)
-    newIter = 0;
+    newIter = -1;
     os.system("mkdir predictors/iter_"+str(iteration+1));
     for pred in matePred:
         path = "predictors/iter_"+str(iteration);
         pred1 = path + "/" + pred[0]+"/bplang";
         pred2 = path + "/" + pred[1]+"/bplang";
+        newIter = newIter+1;
         os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
         run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
         print run;
