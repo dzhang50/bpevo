@@ -146,21 +146,20 @@ public class BPLangProg {
       nodeSrc = node1;
     }
     
-    int changed = 0;
     int chooseRand = 1;
-    int chooseIdx = -1;
+    int chooseIdx1 = -1;
+    int chooseIdx2 = -1;
     int totalLoops = 0;
-    while(changed < numChanges) {
+    for(int changed = 0; changed < numChanges; changed++) {
       int idx1 = -1;
       int idx2 = -1;
 
       // Choose a node from nodeSrc to add to node
       if(chooseRand == 1) {
-	//idx1 = rand.nextInt(node.children.size());
 	idx2 = rand.nextInt(nodeSrc.children.size());
       }
       else {
-	idx2 = chooseIdx;
+	idx2 = chooseIdx2;
       }
       String selOutput = nodeSrc.children.get(idx2).children.get(0).msg;
 
@@ -174,12 +173,18 @@ public class BPLangProg {
       }
       
       if(idx1 != -1) {
-	//System.out.println("Replacing node1["+idx1+"] with node2["+idx2+"]\n");
+	//System.out.println("Replacing node1["+idx1+"] with node2["+idx2+"]");
 	node.children.set(idx1, new Node(nodeSrc.children.get(idx2)));
       }
       else {
 	//System.out.println(selOutput+" doesn't exist, adding a new node");
-	idx1 = rand.nextInt(node.children.size());
+	if(chooseRand == 1) {
+	  idx1 = rand.nextInt(node.children.size());
+	} else {
+	  //System.out.println("Special module chosen: "+nodeSrc.children.get(idx2));
+	  //System.out.println("ChooseIdx1: "+chooseIdx1);
+	  idx1 = rand.nextInt(chooseIdx1+1);
+	}
 	node.children.add(idx1, new Node(nodeSrc.children.get(idx2)));
       }
       
@@ -193,24 +198,27 @@ public class BPLangProg {
       
       validWires.addAll(nodeOutputs(tmp));
       allWires.addAll(nodeOutputs(node));
-      
+      //System.out.println("validWires: "+validWires);
       chooseRand = 1;
       for(Node n : node.children.get(idx1).children) {
 	if(n.type == NodeType.INPUT_ID){ 
+	  //System.out.println("Considering wire "+n.msg);
 	  // if a wire is not valid
 	  if(!validWires.contains(n.msg)) {
 	    // if defined later on in the file, or if we're already extending, or if last iteration
 	    if(allWires.contains(n.msg) || chooseRand == 0 || (changed+1 == numChanges)) {
 	      // randomly select a valid wire
 	      n.msg = validWires.get(rand.nextInt(validWires.size()));
+	      //System.out.println("Wire not found, randomly choosing wire "+n.msg);
 	    }
 	    else {
 	      chooseRand = 0;
+	      chooseIdx1 = idx1;
 	      // Find idx
 	      for(int i = 0; i < nodeSrc.children.size(); i++) {
 		Node m = nodeSrc.children.get(i);
 		if((m.children.get(0).type == NodeType.OUTPUT_ID) && (m.children.get(0).msg.equals(n.msg))) {
-		  chooseIdx = i;
+		  chooseIdx2 = i;
 		  //System.out.println("Choosing special module "+m.msg+" at nodeSrc idx "+i);
 		}
 	      }
@@ -218,14 +226,8 @@ public class BPLangProg {
 	  }
 	}
       }
-      changed++;
-      totalLoops++;
-      
-      //watchdog
-      if(totalLoops > numChanges*1000) {
-	throw new Exception("ERROR: Likely deadlock detected by watchdog when mating predictors "+node1+"\n\n"+node2);
-      }
     }
+    //System.out.println(nodeToString(node));
     return node;
   }
   
@@ -261,7 +263,7 @@ public class BPLangProg {
       int inputIdx;
       do {
 	inputIdx = rand.nextInt(selNode.children.size());
-      }while (false);
+      }while (selNode.children.get(inputIdx).type != NodeType.INPUT_ID);
       node.children.get(nodeIdx).children.get(inputIdx).msg = validWires.get(rand.nextInt(validWires.size()));
     }
     else if(sel == 1){
@@ -331,6 +333,7 @@ public class BPLangProg {
       String tmp = nodeToString(node);
       
     }
+    //System.out.println("\n\n"+nodeToString(node));
   }
 
   // Node (Flat) -> boolean
