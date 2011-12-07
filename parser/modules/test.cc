@@ -32,7 +32,7 @@ int main()
     for (ulong i = 0; i < output.size(); i++)
     {
 //	cout << output[i] << ", MSB:" << MSB().Invocate(output[i])<< endl;
-	cout << bimodal.Invocate(dynamic_bitset<> (4,i),in_data,  dynamic_bitset<> (4,0), dynamic_bitset<> (1,0ul)) << ", MSB:" << MSB().Invocate(output[i])<< endl;
+	cout << bimodal.Invocate(dynamic_bitset<> (4,i),in_data,  dynamic_bitset<> (4,0), dynamic_bitset<> (1,0ul)) << ", MSB:" << MSB().Invocate(output[i])<< " HASH: " << HASH().Invocate(output[i]) << endl;
     }
 /*
     vector<dynamic_bitset<> > single;
@@ -73,6 +73,11 @@ int main()
     dynamic_bitset<> NOTed = NOT().Invocate(output[5]);
     cout << "NOT:" << endl << NOTed << endl;
 
+    dynamic_bitset<> SHIFTed = SHIFT(dynamic_bitset<> (1,1ul)).Invocate(output[7], output[12]);
+    cout << "SHIFT left:" << endl << SHIFTed << endl;
+
+    SHIFTed = SHIFT(dynamic_bitset<> (1,0ul)).Invocate(output[12], output[0]);
+    cout << "SHIFT right:" << endl << SHIFTed << endl;
     
     ulong width = 2ul;
     ulong twoBitEntries = 3ul;

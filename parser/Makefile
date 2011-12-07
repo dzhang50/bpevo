@@ -5,7 +5,7 @@
 # 32 for 32-bit system and 64 for 64-bit system
 FORMAT = 64
 
-CXXFLAGS = -O3 -Wall -Ireaderlib -std=c++0x 
+CXXFLAGS = -O3 -Wall -Ireaderlib 
 CXX = g++
 
 objects = cbp3_framework.o predictor.o
@@ -30,7 +30,7 @@ java:
 
 gen:
 	$(MAKE) java
-	java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors 30 60 983
+	java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors 40 80 411
 #	mkdir -p predictors/mate
 #	java -cp .:antlr-3.4-complete.jar BPLangProg mate predictors/predictor_1/bplang predictors/predictor_3/bplang predictors/mate 1 42 
 

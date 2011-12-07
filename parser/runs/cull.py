@@ -23,8 +23,8 @@ for predictor in results:
 
 predictors.sort(key=lambda predictor: predictor[1])
 
-os.chdir('../..')
-os.system('mkdir -p next_gen')
+#os.chdir('../..')
+#os.system('mkdir -p next_gen')
 
 for p in predictors:
     print p
