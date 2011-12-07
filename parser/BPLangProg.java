@@ -382,7 +382,9 @@ public class BPLangProg {
     }
     else {
       //---------------- Delete a node ------------------------
-      //System.out.println("Deleting node");
+      if(node.children.size() <= 2) {
+	return;
+      }
       node.children.remove(rand.nextInt(node.children.size()));
       fixInputs(node, rand);
       fixOutput(node);
