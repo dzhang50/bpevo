@@ -41,11 +41,16 @@ public class BPLangProg {
 	  pred = genPredictor("library", maxSize, rand);
 	  node = getInitialNodeString(pred);
 	} while(verifyPredictor(node) == false);
-
+	
 	runSysCmd("mkdir "+rootDir+"/predictor_"+i);
-	genCpp(rootDir+"/predictor_"+i+"/predictor.cc",pred);
+	//System.out.println("Raw: \n"+pred);
 	genBPLang(rootDir+"/predictor_"+i+"/bplang", pred);
+	pareTree(node);
+	pred = nodeToString(node);
+	//System.out.println("Pared: \n"+pred);
+	genCpp(rootDir+"/predictor_"+i+"/predictor.cc",pred);
 	runSysCmd("cp modules/predictor.h "+rootDir+"/predictor_"+i+"/");
+	
       }
     }
     // mate <path to mother> <path to father> <path to child directory> <num mutations> <rand seed>
@@ -918,6 +923,33 @@ public class BPLangProg {
     }
 
     return size;
+  }
+  
+  public static void pareTree(Node node) throws Exception {
+    List<String> inputKeywords = new ArrayList<String>();
+    addInputKeywords(inputKeywords);
+    Node nodeTree = buildTree("prediction", node, inputKeywords);
+    
+    int x = 0;
+    while(x < node.children.size()) {
+      if(!buildTreeContainsOut(nodeTree, node.children.get(x).children.get(0).msg)) {
+	node.children.remove(x);
+
+      }else
+	x++;
+    }
+  }
+
+  public static boolean buildTreeContainsOut(Node node, String outputName) {
+    if(node.instanceName.equals(outputName)) {
+      return true;
+    }
+
+    for(Node module : node.children) {
+      if(buildTreeContainsOut(module, outputName))
+	return true;
+    }
+    return false;
   }
 
   // Node (Flat) -> Node (Dep)
