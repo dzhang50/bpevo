@@ -159,6 +159,9 @@ public class BPLangProg {
       nodeSrc = node1;
     }
     
+    List<Integer> idxQueue1 = new ArrayList<Integer>();
+    List<Integer> idxQueue2 = new ArrayList<Integer>();
+
     int chooseRand = 1;
     int chooseIdx1 = -1;
     int chooseIdx2 = -1;
@@ -167,11 +170,12 @@ public class BPLangProg {
       int idx2 = -1;
 
       // Choose a node from nodeSrc to add to node
-      if(chooseRand == 1) {
+      if(idxQueue.size() == 0) {
 	idx2 = rand.nextInt(nodeSrc.children.size());
       }
       else {
-	idx2 = chooseIdx2;
+	idx2 = idxQueue2.get(0);
+	idxQueue2.remove(0);
       }
       String selOutput = nodeSrc.children.get(idx2).children.get(0).msg;
 
@@ -190,12 +194,13 @@ public class BPLangProg {
       }
       else {
 	//System.out.println(selOutput+" doesn't exist, adding a new node");
-	if(chooseRand == 1) {
+	if(idxQueue1.size() == 0) {
 	  idx1 = rand.nextInt(node.children.size());
 	} else {
 	  //System.out.println("Special module chosen: "+nodeSrc.children.get(idx2));
 	  //System.out.println("ChooseIdx1: "+chooseIdx1);
-	  idx1 = rand.nextInt(chooseIdx1+1);
+	  idx1 = rand.nextInt(idxQueue1.get(0)+1);
+	  idxQueue1.remove(0);
 	}
 	node.children.add(idx1, new Node(nodeSrc.children.get(idx2)));
       }
@@ -211,26 +216,26 @@ public class BPLangProg {
       validWires.addAll(nodeOutputs(tmp));
       allWires.addAll(nodeOutputs(node));
       //System.out.println("validWires: "+validWires);
-      chooseRand = 1;
       for(Node n : node.children.get(idx1).children) {
 	if(n.type == NodeType.INPUT_ID){ 
 	  //System.out.println("Considering wire "+n.msg);
 	  // if a wire is not valid
 	  if(!validWires.contains(n.msg)) {
 	    // if defined later on in the file, or if we're already extending, or if last iteration
-	    if(allWires.contains(n.msg) || chooseRand == 0 || (changed+1 == numChanges)) {
+	    if(allWires.contains(n.msg) || chooseRand == 0 || (changed+1+idxQueue1.size() >= numChanges)) {
 	      // randomly select a valid wire
 	      n.msg = validWires.get(rand.nextInt(validWires.size()));
 	      //System.out.println("Wire not found, randomly choosing wire "+n.msg);
 	    }
 	    else {
-	      chooseRand = 0;
-	      chooseIdx1 = idx1;
 	      // Find idx
 	      for(int i = 0; i < nodeSrc.children.size(); i++) {
 		Node m = nodeSrc.children.get(i);
 		if((m.children.get(0).type == NodeType.OUTPUT_ID) && (m.children.get(0).msg.equals(n.msg))) {
-		  chooseIdx2 = i;
+		  //chooseIdx2 = i;
+		  //chooseIdx1 = idx1;
+		  idxQueue2.add(i);
+		  idxQueue1.add(idx1);
 		  //System.out.println("Choosing special module "+m.msg+" at nodeSrc idx "+i);
 		}
 	      }
@@ -540,7 +545,7 @@ public class BPLangProg {
     
     // Use constrained random method of generating a predictor
     
-    int predictorSize = rand.nextInt(maxSize)+1; // size 1-maxSize elements
+    int predictorSize = maxSize; // rand.nextInt(maxSize)+1; // size 1-maxSize elements
     //System.out.println("Size chosen: "+predictorSize);
     List<String> vars = new ArrayList<String>();
     addInputKeywords(vars);
