@@ -236,6 +236,15 @@ public class BPLangProg {
     if(sel == 0) {
       //---------- Change a wire connection -------------------
       int nodeIdx = -1;
+      
+      // Make sure predictor has at least one input
+      int numInput = 0;
+      for(Node n : node.children) {
+	numInput += numType(n, NodeType.INPUT_ID);
+      }
+      if(numInput == 0)
+	return;
+      
       do {
 	nodeIdx = rand.nextInt(node.children.size());
       } while (numType(node.children.get(nodeIdx), NodeType.INPUT_ID) == 0);
@@ -259,7 +268,7 @@ public class BPLangProg {
       //------------ Change a parameter -----------------------
       int nodeIdx = -1;
       
-      // Make sure node has a parameter
+      // Make sure predictor has at least one parameter
       int numParam = 0;
       for(Node n : node.children) {
 	numParam += numType(n, NodeType.PARAM);
