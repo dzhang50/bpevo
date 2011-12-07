@@ -11,6 +11,8 @@ EQUAL {null%0, null%0};
 SHIFT#([3:0]%100) {null%0, null%0};
 GHR_FETCH#([128:8]%100);
 GHR_RETIRE#([128:8]%100);
+PHR_FETCH#([128:8]%100);
+PHR_RETIRE#([128:8]%100);
 TABLE_2BITCNTR#([2048:64]%100) {readPC%80, writeTaken%50, writePC%80, writeValid%70};
 TABLE#([2048:64]%100,[128:8]%100) {readPC%80, writeTaken%50, writePC%80, writeValid%70};
 TABLE_CNTR#([2048:64]%100,[4:1]%100) {readPC%80, writeTaken%50, writePC%80, writeValid%70};

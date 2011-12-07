@@ -20,6 +20,8 @@ const uint MAX_HISTORY_LENGTH = 128;
 
 dynamic_bitset<> brh_fetch(MAX_HISTORY_LENGTH);
 dynamic_bitset<> brh_retire(MAX_HISTORY_LENGTH);
+dynamic_bitset<> ph_fetch(MAX_HISTORY_LENGTH);
+dynamic_bitset<> ph_retire(MAX_HISTORY_LENGTH);
 
 
 // Global functions
@@ -47,6 +49,12 @@ void updateSpecialState()
 	    brh_fetch <<=1;
 	    brh_fetch.set(0, true);
 	}
+
+	if (uop_is_branch(fe_uop->type))
+	{
+	    ph_fetch <<=1;
+	    ph_fetch.set(0,((fe_uop->pc & 1)!= 0));
+	}
     }
 
     if (writeValid[0])
@@ -60,6 +68,11 @@ void updateSpecialState()
 	{
 	    brh_retire <<=1;
 	    brh_retire.set(0, true);
+	}
+	if (uop_is_branch(retire_uop->type))
+	{
+	    ph_retire <<=1;
+	    ph_retire.set(0,((retire_uop->pc & 1)!= 0));
 	}
     }
 }
