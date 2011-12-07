@@ -251,7 +251,7 @@ public class BPLangProg {
   }
   
   public static void mutatePredictor(Node node, String file, Random rand) throws Exception {
-    int sel = rand.nextInt(3);
+    int sel = rand.nextInt(4);
     Node config = getInitialNode("library");
     
     if(sel == 0) {
@@ -343,7 +343,7 @@ public class BPLangProg {
       
       //System.out.println("CHANGE PARAM: "+nodeType+", upper: "+upper+", lower: "+lower+", oldVal: "+oldVal+", newVal: "+newVal);
     }
-    else {
+    else if(sel == 2){
       //---------------- Add a node ------------------------
       
       // Generate a 1-line predictor and add it 
@@ -380,7 +380,33 @@ public class BPLangProg {
 	  x = 0;
       }
     }
+    else {
+      //---------------- Delete a node ------------------------
+      //System.out.println("Deleting node");
+      node.children.remove(rand.nextInt(node.children.size()));
+      fixInputs(node, rand);
+      fixOutput(node);
+    }
     //System.out.println("\n\n"+nodeToString(node));
+  }
+
+    
+  public static void fixInputs(Node node, Random rand) {
+    List<String> outputs = new ArrayList<String>();
+    addInputKeywords(outputs);
+    for(Node n : node.children) {
+      for(Node m : n.children) {
+	// If illegal input, change the input to something valid
+	if(m.type == NodeType.INPUT_ID && !outputs.contains(m.msg)) {
+	  m.msg = outputs.get(rand.nextInt(outputs.size()));
+	}
+      }
+    }
+  }
+  
+  public static void fixOutput(Node node) {
+    Node lastOutput = node.children.get(node.children.size()-1).children.get(0);
+    lastOutput.msg = "prediction";
   }
 
   // Node (Flat) -> boolean
