@@ -283,7 +283,9 @@ public class BPLangProg {
       do {
 	inputIdx = rand.nextInt(selNode.children.size());
       }while (selNode.children.get(inputIdx).type != NodeType.INPUT_ID);
+      //System.out.print("Mutating wire "+node.children.get(nodeIdx).children.get(inputIdx).msg);
       node.children.get(nodeIdx).children.get(inputIdx).msg = validWires.get(rand.nextInt(validWires.size()));
+      //System.out.println(" to "+node.children.get(nodeIdx).children.get(inputIdx).msg);
     }
     else if(sel == 1){
       //------------ Change a parameter -----------------------
@@ -394,15 +396,15 @@ public class BPLangProg {
     addInputKeywords(inputKeywords);
     Node nodeTree = buildTree("prediction", node, inputKeywords);
     
-    if(treeDepth(nodeTree) > 5) {
+    if(treeDepth(nodeTree) > 12) {
       return false;
     }
     
-    if(treeSize(nodeTree) > 20) {
+    if(treeSize(nodeTree) > 40) {
       return false;
     }
     
-    if(node.children.size() > 100) {
+    if(node.children.size() > 150) {
       return false;
     }
 
