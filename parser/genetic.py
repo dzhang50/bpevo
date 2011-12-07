@@ -9,7 +9,9 @@ POPULATION = 12; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 80;
 SEED = 983;
 MAX_THREADS = 12;
-MUTATION_RATE = 2; # Number of mutations per mating
+STAGNATION_THRESHOLD = 4; # Number of iterations where local min doesnt change
+MUTATION_INIT = 2;  # Number of mutations per mating
+MUTATION_THRESHOLD = 100; # Maximum number of mutations
 NUM_ITER = 100;
 
 # Function for getting the new random number seed
@@ -67,6 +69,10 @@ gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors/iter_0 "+str(
 print gen;
 os.system(gen);
 
+best = 100000;
+lastBest = 0;
+mutationRate = MUTATION_INIT;
+
 for iteration in range(NUM_ITER):
     # Generate an executable for every predictor
     os.system("rm -rf bin/*");
@@ -120,6 +126,20 @@ for iteration in range(NUM_ITER):
     # randomly merge predictors using the tournament method in Emer97
     matePred = emerSel(predictors);
     
+    # Generate mutation rate based on last time new local min was found
+    if(predictors[0][1] < best):
+        best = predictors[0][1];
+        mutationRate = MUTATION_INIT;
+    else:
+        lastBest = lastBest + 1;
+
+    if(lastBest > STAGNATION_THRESHOLD):
+        if(mutationRate < MUTATION_THRESHOLD):
+            mutationRate = mutationRate * 2;
+            print "STAGNATION, SETTING MUTATION RATE = "+str(mutationRate);
+            if(mutationRate > MUTATION_THRESHOLD):
+                mutationRate = MUTATION_THRESHOLD;
+
     # For each pair, call the mating function twice 
     # (to preserve same population size)
     newIter = -1;
@@ -131,7 +151,7 @@ for iteration in range(NUM_ITER):
         for numChildren in range(4):
             newIter = newIter+1;
             os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
-            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
+            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(mutationRate)+" "+str(getSeed());
             print run;
             os.system(run);
         
