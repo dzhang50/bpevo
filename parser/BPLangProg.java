@@ -71,8 +71,10 @@ public class BPLangProg {
       
       String n = nodeToString(child);
       
-      genCpp(childPath+"/predictor.cc", child, "");
       genBPLang(childPath+"/bplang", n);
+      pareTree(child);
+      n = nodeToString(child);
+      genCpp(childPath+"/predictor.cc", n);
 
       //r.exec("mv predictor.cc "+childPath);
       //r.exec("mv bplang "+childPath);

@@ -5,12 +5,12 @@
 
 import os, sys, re, glob, random;
 
-POPULATION = 60; # MUST BE DIVISIBLE BY 4
+POPULATION = 12; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 80;
 SEED = 983;
 MAX_THREADS = 12;
-MUTATION_RATE = 10; # Number of mutations per mating
-NUM_ITER = 10;
+MUTATION_RATE = 2; # Number of mutations per mating
+NUM_ITER = 100;
 
 # Function for getting the new random number seed
 def getSeed():
