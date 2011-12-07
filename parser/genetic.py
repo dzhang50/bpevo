@@ -5,11 +5,11 @@
 
 import os, sys, re, glob, random;
 
-POPULATION = 4; # MUST BE DIVISIBLE BY 4
-MAX_LINES = 60;
+POPULATION = 60; # MUST BE DIVISIBLE BY 4
+MAX_LINES = 80;
 SEED = 983;
 MAX_THREADS = 12;
-MUTATION_RATE = 2; # Number of mutations per mating
+MUTATION_RATE = 10; # Number of mutations per mating
 NUM_ITER = 10;
 
 # Function for getting the new random number seed
@@ -82,12 +82,12 @@ for iteration in range(NUM_ITER):
     results = glob.glob('*.result')
     predictors = []
     for predictor in results:
-        trimmedName = predictor.rpartition('.')[0]
+        trimmedName = predictor.rsplit('.')[0]
         #with open(predictor, 'r') as f:
         f = open(predictor, 'r')
         for line in f:
             if line.find('Average conditional MPPKI') >= 0 :
-                number = line.rpartition(': ')[2].strip()
+                number = line.rsplit(':')[1].strip()
                 break
 
         predictors.append((trimmedName, int(number)))

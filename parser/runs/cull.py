@@ -6,13 +6,13 @@ os.chdir('results')
 results = glob.glob('*.result')
 predictors = []
 for predictor in results:
-    trimmedName = predictor.rpartition('.')[0]
+    trimmedName = predictor.rsplit('.')[0]
     #print trimmedName
     #with open(predictor, 'r') as f:
     f = open(predictor, 'r')
     for line in f:
         if line.find('Average conditional MPPKI') >= 0 :
-            number = line.rpartition(': ')[2].strip()
+            number = line.rsplit(':')[1].strip()
             break
         
     #print (trimmedName, int(number))
