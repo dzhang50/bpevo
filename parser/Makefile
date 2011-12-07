@@ -3,7 +3,7 @@
 # DO NOT MODIFY. THIS FILE WILL NOT BE SUBMITTED WITH YOUR PREDICTOR
 
 # 32 for 32-bit system and 64 for 64-bit system
-FORMAT = 32
+FORMAT = 64
 
 CXXFLAGS = -O3 -Wall -Ireaderlib 
 CXX = g++
