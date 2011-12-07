@@ -5,7 +5,7 @@
 
 import os, sys, re, glob, random;
 
-POPULATION = 16; # MUST BE DIVISIBLE BY 4
+POPULATION = 40; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 60;
 SEED = 983;
 MAX_THREADS = 12;
@@ -70,7 +70,7 @@ for iteration in range(NUM_ITER):
 
     # Generate an executable for every predictor
     os.system("rm -rf bin/*");
-    os.system("make SRCDIR=predictors/iter_"+str(iteration));
+    os.system("make -j"+str(MAX_THREADS)+" SRCDIR=predictors/iter_"+str(iteration));
 
     # Next, simulate every predictor (changedir to $PARSER/runs)
     os.chdir("runs");
