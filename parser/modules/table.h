@@ -13,20 +13,20 @@
 class TABLE
 {
 protected:
+    ulong width;
     dynamic_bitset<> *table;
     ulong numEntries; 
 public:
-    TABLE (ulong numEntriesInput);
+    TABLE (ulong numEntriesInput, ulong widthInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
     dynamic_bitset<> Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_data,
 				       dynamic_bitset<> in_idx, dynamic_bitset<> in_enable);
-    void Initialize();
+    void Initialize(ulong value);
 };
 
 class TABLE_CNTR : public TABLE
 {
-    ulong width;
 public:
     TABLE_CNTR(ulong numEntriesInput, ulong widthInput);
     vector<dynamic_bitset<> > Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
@@ -47,18 +47,20 @@ public:
 };
 
 
-TABLE::TABLE (ulong numEntriesInput)
+TABLE::TABLE (ulong numEntriesInput, ulong widthInput)
 {
     numEntries = numEntriesInput;
+    width = widthInput;
     table = new dynamic_bitset<>[numEntries];
-    Initialize();
+    Initialize(0);
 }
 
-void TABLE::Initialize()
+void TABLE::Initialize(ulong value)
 {
     for (ulong i = 0; i < numEntries; i++)
     {
-	table[i].reset();
+	table[i].resize(width);
+	table[i] = dynamic_bitset<>(width, value);
     }
 }
 
@@ -79,7 +81,7 @@ vector<dynamic_bitset<> > TABLE::Invocate(vector<dynamic_bitset<> > out_idx, dyn
 	index %= numEntries;
 	output.push_back(table[index]);
     }
-
+    assert (in_enable.size() > 0);
     if (in_enable.test(0))
     {
 	//cout << "table write index\n" << endl;
@@ -89,6 +91,7 @@ vector<dynamic_bitset<> > TABLE::Invocate(vector<dynamic_bitset<> > out_idx, dyn
 	index = in_idx.to_ulong();
 	index %= numEntries;
 	table[index] = in_data;
+	table[index].resize(width);
     }
 
     return output;
@@ -103,19 +106,10 @@ dynamic_bitset<> TABLE::Invocate(dynamic_bitset<> out_idx, dynamic_bitset<> in_d
     
 }
 
-TABLE_CNTR::TABLE_CNTR(ulong numEntriesInput, ulong widthInput) : TABLE(numEntriesInput), width(widthInput)
-{
-    TABLE_CNTR::Initialize();   
-}
-
-void TABLE_CNTR::Initialize()
+TABLE_CNTR::TABLE_CNTR(ulong numEntriesInput, ulong widthInput) : TABLE(numEntriesInput,widthInput)
 {
     ulong weaklyTaken = ((1 << (width - 1)) - 1);
-    for (ulong i = 0; i < numEntries; i++)
-    {
-	table[i].resize(width);
-	table[i] = dynamic_bitset<>(width, weaklyTaken);
-    }
+    TABLE::Initialize(weaklyTaken);
 }
 
 vector<dynamic_bitset<> > TABLE_CNTR::Invocate(vector<dynamic_bitset<> > out_idx, dynamic_bitset<> in_data,
@@ -136,6 +130,7 @@ vector<dynamic_bitset<> > TABLE_CNTR::Invocate(vector<dynamic_bitset<> > out_idx
 	output.push_back(table[index]);
     }
 
+    assert (in_enable.size() > 0);
     if (in_enable.test(0))
     {
 	//cout << "counter table write index\n" << endl;

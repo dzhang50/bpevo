@@ -9,7 +9,7 @@
 #include <iostream>
 
 ulong numEntries = 14ul;
-TABLE bimodal = TABLE(numEntries);
+TABLE bimodal = TABLE(numEntries, 8);
 EQUAL equalInst = EQUAL();
 XOR test = XOR();
 
@@ -64,10 +64,10 @@ int main()
     dynamic_bitset<> MUXed1 = MUX().Invocate(dynamic_bitset<>(1,0ul),output[13], output[4]);
     cout << "MUX:" << endl << MUXed1 << endl;
 
-    dynamic_bitset<> MUXed2 = MUX().Invocate(dynamic_bitset<>(2,2ul),output[13], output[4]);
+    dynamic_bitset<> MUXed2 = MUX().Invocate(dynamic_bitset<>(2,1ul),output[13], output[4]);
     cout << "MUX:" << endl << MUXed2 << endl;
 
-    dynamic_bitset<> equal = equalInst.Invocate(output[0], output[0]);
+    dynamic_bitset<> equal = equalInst.Invocate(output[0], output[13]);
     cout << "EQUAL:" << endl << equal << endl;
 
     dynamic_bitset<> NOTed = NOT().Invocate(output[5]);
@@ -80,13 +80,13 @@ int main()
     
     out_idx.clear();
 
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
-    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
-    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
+       /*  twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul));
-    /* twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
+    twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,0ul),  dynamic_bitset<> (2,1ul), dynamic_bitset<> (1,1ul));
     twoBitCounter.Invocate(out_idx,dynamic_bitset<> (1,1ul),  dynamic_bitset<> (2,0ul), dynamic_bitset<> (1,1ul)); 
