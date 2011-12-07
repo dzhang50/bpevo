@@ -5,7 +5,7 @@
 
 import os, sys, re, glob, random;
 
-POPULATION = 40; # MUST BE DIVISIBLE BY 4
+POPULATION = 4; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 60;
 SEED = 983;
 MAX_THREADS = 12;
@@ -52,7 +52,7 @@ def emerSel(pred):
             bestPred2 = pred2[0];
         
         matePred.append((bestPred1, bestPred2));
-
+    print matePred;
     return matePred;
 
 # Setup
@@ -62,12 +62,12 @@ os.system("rm -f results");
 os.system("echo '' > results");
 os.system('mkdir predictors')
 
-for iteration in range(NUM_ITER):
-    # First, compile and generate the initial batch
-    gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors/iter_"+str(iteration)+" "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
-    print gen;
-    os.system(gen);
+# First, compile and generate the initial batch
+gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors/iter_0 "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
+print gen;
+os.system(gen);
 
+for iteration in range(NUM_ITER):
     # Generate an executable for every predictor
     os.system("rm -rf bin/*");
     os.system("make -j"+str(MAX_THREADS)+" SRCDIR=predictors/iter_"+str(iteration));
@@ -128,15 +128,10 @@ for iteration in range(NUM_ITER):
         path = "predictors/iter_"+str(iteration);
         pred1 = path + "/" + pred[0]+"/bplang";
         pred2 = path + "/" + pred[1]+"/bplang";
-        newIter = newIter+1;
-        os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
-        run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
-        print run;
-        os.system(run);
-
-        newIter = newIter+1;
-        os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
-        run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
-        print run;
-        os.system(run);
+        for numChildren in range(4):
+            newIter = newIter+1;
+            os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
+            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(MUTATION_RATE)+" "+str(getSeed());
+            print run;
+            os.system(run);
         
