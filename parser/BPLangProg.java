@@ -585,18 +585,18 @@ public class BPLangProg {
     out.write("#include <string.h>\n");
     out.write("#include <inttypes.h>\n\n");
     
-    out.write("#include \"../../readerlib/cbp3_def.h\"\n");
-    out.write("#include \"../../cbp3_framework.h\"\n\n");
+    out.write("#include <cbp3_def.h>\n");
+    out.write("#include <cbp3_framework.h>\n\n");
     //out.write("#include \"predictor.h\"\n\n");
 
     out.write("#ifndef TABLES\n");
-    out.write("#include \"../modules/table.h\"\n");
+    out.write("#include <table.h>\n");
     out.write("#endif\n\n");    
     out.write("#ifndef LOGIC\n");
-    out.write("#include \"../modules/logic.h\"\n");
+    out.write("#include <logic.h>\n");
     out.write("#endif\n\n");
     out.write("#ifndef GHR\n");
-    out.write("#include \"../modules/ghr.h\"\n");
+    out.write("#include <ghr.h>\n");
     out.write("#endif\n\n");
 
     out.write("using namespace std;\n\n");
