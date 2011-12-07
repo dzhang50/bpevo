@@ -36,6 +36,26 @@ public:
     dynamic_bitset<> Invocate();
 };
 
+class PHR_FETCH
+{
+protected:
+    int length;
+public:
+    PHR_FETCH(int lengthInput);
+    dynamic_bitset<> Invocate();
+};
+
+class PHR_RETIRE
+{
+protected:
+    int length;
+public:
+    PHR_RETIRE(int lengthInput);
+    dynamic_bitset<> Invocate();
+};
+
+
+
 GHR_FETCH::GHR_FETCH(int lengthInput): length(lengthInput){}
 dynamic_bitset<> GHR_FETCH::Invocate()
 {
@@ -54,6 +74,23 @@ dynamic_bitset<> GHR_RETIRE::Invocate()
     return returnVal;
 }
 
+PHR_FETCH::PHR_FETCH(int lengthInput): length(lengthInput){}
+dynamic_bitset<> PHR_FETCH::Invocate()
+{
+    dynamic_bitset<> returnVal = ph_fetch;
+    returnVal.resize(length);
+    //assert(brh_fetch.size() == MAX_HISTORY_LENGTH);
+    return returnVal;
+}
+
+PHR_RETIRE::PHR_RETIRE(int lengthInput): length(lengthInput){}
+dynamic_bitset<> PHR_RETIRE::Invocate()
+{
+    dynamic_bitset<> returnVal = ph_retire;
+    returnVal.resize(length);
+    //assert(brh_retire.size() == MAX_HISTORY_LENGTH);
+    return returnVal;
+}
 
 
 
