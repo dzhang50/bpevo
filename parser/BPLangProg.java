@@ -170,7 +170,7 @@ public class BPLangProg {
       int idx2 = -1;
 
       // Choose a node from nodeSrc to add to node
-      if(idxQueue.size() == 0) {
+      if(idxQueue2.size() == 0) {
 	idx2 = rand.nextInt(nodeSrc.children.size());
       }
       else {
