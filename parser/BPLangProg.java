@@ -25,7 +25,6 @@ public class BPLangProg {
     }
     
     Random rand = new Random(127);
-    Runtime r = Runtime.getRuntime();
     
     // gen <root dir> <number of predictors to generate> <max size of each predictor in lines> <rand seed>
     if(args[0].equals("gen")) {
@@ -36,7 +35,13 @@ public class BPLangProg {
       runSysCmd("mkdir "+rootDir); //r.exec("mkdir predictors");
       
       for(int i = 0; i < numPredictors; i++) {
-	String pred = genPredictor("library", maxSize, rand);
+	String pred;
+	Node node;
+	do {
+	  pred = genPredictor("library", maxSize, rand);
+	  node = getInitialNodeString(pred);
+	} while(verifyPredictor(node) == false);
+
 	runSysCmd("mkdir "+rootDir+"/predictor_"+i);
 	genCpp(rootDir+"/predictor_"+i+"/predictor.cc",pred);
 	genBPLang(rootDir+"/predictor_"+i+"/bplang", pred);
@@ -51,10 +56,13 @@ public class BPLangProg {
       int numMutations = Integer.parseInt(args[4]);
       rand = new Random(Integer.parseInt(args[5]));
       
-      Node child = matePredictors(tree1, tree2, rand);
-      for(int i = 0; i < numMutations; i++) {
-	mutatePredictor(child, "library", rand);
-      }
+      Node child;
+      do {
+	child = matePredictors(tree1, tree2, rand);
+	for(int i = 0; i < numMutations; i++) {
+	  mutatePredictor(child, "library", rand);
+	}
+      } while(verifyPredictor(child) == false);
       
       String n = nodeToString(child);
       
@@ -85,7 +93,7 @@ public class BPLangProg {
     Node tree3;
 
     do {
-      tree3 = matePredictors(tree1, tree2, rand);
+    tree3 = matePredictors(tree1, tree2, rand);
     } while(verifyPredictor(tree3) == false);
 
     System.out.println(tree1+"\n+\n"+tree2+"\n=\n"+tree3);
@@ -105,7 +113,7 @@ public class BPLangProg {
       System.out.println(line);  // Prints the error lines
     }
  
-    int exitVal = proc.waitFor();   
+    //int exitVal = proc.waitFor();   
     
   }
 
@@ -149,7 +157,6 @@ public class BPLangProg {
     int chooseRand = 1;
     int chooseIdx1 = -1;
     int chooseIdx2 = -1;
-    int totalLoops = 0;
     for(int changed = 0; changed < numChanges; changed++) {
       int idx1 = -1;
       int idx2 = -1;
@@ -232,7 +239,7 @@ public class BPLangProg {
   }
   
   public static void mutatePredictor(Node node, String file, Random rand) throws Exception {
-    int sel = rand.nextInt(2);
+    int sel = rand.nextInt(3);
     Node config = getInitialNode("library");
     
     if(sel == 0) {
@@ -306,14 +313,14 @@ public class BPLangProg {
       // Set parameter
       x = 0;
       int tmp;
-      int newVal=0, oldVal=0;
+      int newVal=0;
       for(Node n : node.children.get(nodeIdx).children) {
 	if(n.type == NodeType.PARAM) {
 	  if(x == selParam) {
 	    tmp = rand.nextInt(upper-lower+1) + lower;
 	    newVal = 1 << log2(tmp);
 
-	    oldVal = Integer.parseInt(n.msg);
+	    //oldVal = Integer.parseInt(n.msg);
 	    n.msg = Integer.toString(newVal);
 	  }
 	  x++;
@@ -325,13 +332,39 @@ public class BPLangProg {
     else {
       //---------------- Add a node ------------------------
       
+      // Generate a 1-line predictor and add it 
       Node lib = getInitialNode(file);
       Map<String, Node> library = genConfigMap(lib);
+      
+      // Create past vars array
+      Node tmp = new Node(node);
+      int nodeIdx = tmp.children.size();
+      tmp.children = tmp.children.subList(0, nodeIdx);
+      
+      List<String> vars = new ArrayList<String>();
+      addInputKeywords(vars);
+      List<String> outputs = nodeOutputs(tmp);
+      vars.addAll(nodeOutputs(tmp));
+      
       List<String> libArray = new ArrayList<String>(library.keySet());
+      List<Integer> libCntArray = new ArrayList<Integer>();
+      for(int i = 0; i < libArray.size(); i++) {
+	libCntArray.add(0);
+      }
       
+      List<List<String>> deps = new ArrayList<List<String>>();
       
-      String tmp = nodeToString(node);
-      
+      int x = 0;
+      Node newNode = getInitialNodeString(genModule(vars, library, libCntArray, deps, false, rand));
+      while(outputs.contains(newNode.children.get(0).msg)){
+	newNode = getInitialNodeString(genModule(vars, library, libCntArray, deps, false, rand));
+	int val = libCntArray.get(x)+1;
+	libCntArray.set(x, val);
+	if(x <= libCntArray.size()-2)
+	  x++;
+	else
+	  x = 0;
+      }
     }
     //System.out.println("\n\n"+nodeToString(node));
   }
@@ -390,6 +423,110 @@ public class BPLangProg {
     return num;
   }
 
+  public static String genModule(List<String> vars, Map<String, Node> library, List<Integer> libCntArray, List<List<String>> deps, boolean lastIter, Random rand) throws Exception {
+    String predictor = "";
+    List<String> dep = new ArrayList<String>();
+    List<String> libArray = new ArrayList<String>(library.keySet());
+
+    // Randomly select a structure
+    int moduleIdx = rand.nextInt(libArray.size());
+    String moduleName = libArray.get(moduleIdx);
+    Node module = library.get(moduleName);
+    String moduleOutput = moduleName.toLowerCase()+"_"+libCntArray.get(moduleIdx);
+    libCntArray.set(moduleIdx, libCntArray.get(moduleIdx)+1);
+      
+    // If last iteration, select as bp output
+    if(lastIter) {
+      moduleOutput = "prediction";
+    }
+
+    predictor += moduleOutput + " = " + moduleName;
+
+    // Randomly select parameters
+    int paramFound = 0;
+    int numParam = 0;
+    for(Node n : module.children) {
+      if(n.type == NodeType.PARAMCONFIG) {
+	if(paramFound == 0) {
+	  predictor += "#(";
+	  paramFound = 1;
+	}
+	else if(numParam != 0) {
+	  predictor += ", ";
+	}
+
+	int param = rand.nextInt(Integer.parseInt(n.upperBound)-Integer.parseInt(n.lowerBound))+Integer.parseInt(n.lowerBound);
+	  
+	// Round to nearest power of 2
+	param = 1 << log2(param);
+	predictor+=Integer.toString(param);
+	numParam++;
+      }
+    }
+    if(paramFound == 1) {
+      predictor += ")";
+    }
+      
+    // Randomly select input parameters
+    int inputFound = 0;
+    int numInput = 0;
+    for(Node n : module.children) {
+      if(n.type == NodeType.IDCONFIG) {
+	if(inputFound == 0) {
+	  predictor += " {";
+	  inputFound = 1;
+	}
+	else if(numInput != 0) {
+	  predictor += ", ";
+	}
+	  
+	// Choose "sticky" input
+	String input = "";
+	if((Integer.parseInt(n.percentage) > rand.nextInt(100)) && vars.contains(n.msg)) {
+	  int found = 0;
+	  while(found == 0) {
+	    int testIdx = rand.nextInt(vars.size());
+	    boolean depCheck;
+	    if(deps.size() > testIdx)
+	      depCheck = deps.get(testIdx).contains(n.msg);
+	    else
+	      depCheck = false;
+	    if(vars.get(testIdx).equals(n.msg) || depCheck) {
+	      input = vars.get(testIdx);
+	      found = 1;
+	    }
+	  }
+	}
+	else {
+	  input = vars.get(rand.nextInt(vars.size()));
+	}
+	predictor += input;
+	  
+	// Build dependency chain
+	// 1. Add immediate dependencies
+	dep.add(input);
+	  
+	// 2. Add next set of dependencies
+	if(deps.size() > vars.indexOf(input))
+	  dep.addAll(deps.get(vars.indexOf(input)));
+	numInput++;
+      }
+    }
+    if(inputFound != 0) {
+      predictor += "}";
+    }
+    predictor += ";";
+
+    // Assuming only 1 output, add to output list --- FIXME
+    vars.add(moduleOutput);
+    deps.add(dep);
+    //System.out.println("Dependencies for "+moduleName+": "+dep);
+    predictor+="\n";
+    
+    return predictor;
+  }
+
+
   // Library -> BP (String)
   public static String genPredictor(String file, int maxSize, Random rand) throws Exception {
     Node node = getInitialNode(file);
@@ -416,102 +553,8 @@ public class BPLangProg {
     }
     
     String predictor = "";
-    String moduleName = "";
-    String moduleOutput = "";
-    Node module;
-    int moduleIdx = 0;
-    List<String> dep;
     for(int i = 0; i < predictorSize; i++) {
-      dep = new ArrayList<String>();
-
-      // Randomly select a structure
-      moduleIdx = rand.nextInt(libArray.size());
-      moduleName = libArray.get(moduleIdx);
-      module = library.get(moduleName);
-      moduleOutput = moduleName.toLowerCase()+"_"+libCntArray.get(moduleIdx);
-      libCntArray.set(moduleIdx, libCntArray.get(moduleIdx)+1);
-      
-      // If last iteration, select as bp output
-      if(i == predictorSize - 1) {
-	moduleOutput = "prediction";
-      }
-
-      predictor += moduleOutput + " = " + moduleName;
-
-      // Randomly select parameters
-      int paramFound = 0;
-      int numParam = 0;
-      for(Node n : module.children) {
-	if(n.type == NodeType.PARAMCONFIG) {
-	  if(paramFound == 0) {
-	    predictor += "#(";
-	    paramFound = 1;
-	  }
-	  else if(numParam != 0) {
-	    predictor += ", ";
-	  }
-
-	  int param = rand.nextInt(Integer.parseInt(n.upperBound)-Integer.parseInt(n.lowerBound))+Integer.parseInt(n.lowerBound);
-	  
-	  // Round to nearest power of 2
-	  param = 1 << log2(param);
-	  predictor+=Integer.toString(param);
-	  numParam++;
-	}
-      }
-      if(paramFound == 1) {
-	predictor += ")";
-      }
-      
-      // Randomly select input parameters
-      int inputFound = 0;
-      int numInput = 0;
-      for(Node n : module.children) {
-	if(n.type == NodeType.IDCONFIG) {
-	  if(inputFound == 0) {
-	    predictor += " {";
-	    inputFound = 1;
-	  }
-	  else if(numInput != 0) {
-	    predictor += ", ";
-	  }
-	  
-	  // Choose "sticky" input
-	  String input = "";
-	  if((Integer.parseInt(n.percentage) > rand.nextInt(100)) && vars.contains(n.msg)) {
-	    int found = 0;
-	    while(found == 0) {
-	      int testIdx = rand.nextInt(vars.size());
-	      if(vars.get(testIdx).equals(n.msg) || deps.get(testIdx).contains(n.msg)) {
-		input = vars.get(testIdx);
-		found = 1;
-	      }
-	    }
-	  }
-	  else {
-	    input = vars.get(rand.nextInt(vars.size()));
-	  }
-	  predictor += input;
-	  
-	  // Build dependency chain
-	  // 1. Add immediate dependencies
-	  dep.add(input);
-	  
-	  // 2. Add next set of dependencies
-	  dep.addAll(deps.get(vars.indexOf(input)));
-	  numInput++;
-	}
-      }
-      if(inputFound != 0) {
-	predictor += "}";
-      }
-      predictor += ";";
-
-      // Assuming only 1 output, add to output list --- FIXME
-      vars.add(moduleOutput);
-      deps.add(dep);
-      //System.out.println("Dependencies for "+moduleName+": "+dep);
-      predictor+="\n";
+      predictor += genModule(vars, library, libCntArray, deps, (i == predictorSize - 1), rand);
     }
     
     //System.out.println(predictor);
@@ -637,13 +680,13 @@ public class BPLangProg {
     out.write("dynamic_bitset<> writeMispredicted;\n\n\n");
     /*
     for(Node n : tree.children) {
-      out.write(n.msg+" ");
-      if(n.children.get(0).type == NodeType.OUTPUT_ID) {
-	  out.write("module_"+n.children.get(0).msg+" = "+n.msg+"();\n");
-      }
-      else {
-	throw new Exception("ERROR: OUTPUT_ID not found");
-      }
+    out.write(n.msg+" ");
+    if(n.children.get(0).type == NodeType.OUTPUT_ID) {
+    out.write("module_"+n.children.get(0).msg+" = "+n.msg+"();\n");
+    }
+    else {
+    throw new Exception("ERROR: OUTPUT_ID not found");
+    }
     }
     */
     // Predictor Init
