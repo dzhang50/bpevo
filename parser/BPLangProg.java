@@ -259,6 +259,14 @@ public class BPLangProg {
       //------------ Change a parameter -----------------------
       int nodeIdx = -1;
       
+      // Make sure node has a parameter
+      int numParam = 0;
+      for(Node n : node.children) {
+	numParam += numType(n, NodeType.PARAM);
+      }
+      if(numParam == 0)
+	return;
+
       // Find a node that has a parameter
       do {
 	nodeIdx = rand.nextInt(node.children.size());
