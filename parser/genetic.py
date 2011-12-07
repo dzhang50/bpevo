@@ -6,13 +6,13 @@
 import os, sys, re, glob, random;
 
 POPULATION = 12; # MUST BE DIVISIBLE BY 4
-MAX_LINES = 80;
+MAX_LINES = 100;
 SEED = 983;
 MAX_THREADS = 12;
 STAGNATION_THRESHOLD = 4; # Number of iterations where local min doesnt change
 MUTATION_INIT = 2;  # Number of mutations per mating
 MUTATION_THRESHOLD = 100; # Maximum number of mutations
-NUM_ITER = 100;
+NUM_ITER = 10;
 
 # Function for getting the new random number seed
 def getSeed():
@@ -72,8 +72,10 @@ os.system(gen);
 best = 100000;
 lastBest = 0;
 mutationRate = MUTATION_INIT;
+iteration = 0;
 
-for iteration in range(NUM_ITER):
+while iteration < NUM_ITER:
+#while true:
     # Generate an executable for every predictor
     os.system("rm -rf bin/*");
     os.system("make -j"+str(MAX_THREADS)+" SRCDIR=predictors/iter_"+str(iteration));
@@ -154,4 +156,4 @@ for iteration in range(NUM_ITER):
             run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(mutationRate)+" "+str(getSeed());
             print run;
             os.system(run);
-        
+    iteration = iteration + 1;
