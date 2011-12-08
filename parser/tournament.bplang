@@ -1,0 +1,27 @@
+ghr_fetch_0 = GHR_FETCH#(16);
+ghr_retire_0 = GHR_RETIRE#(16);
+ghr_fetch_1 = GHR_FETCH#(8);
+ghr_retire_1 = GHR_RETIRE#(8);
+
+xor_0 = XOR{ghr_fetch_0, readPC};
+xor_1 = XOR{ghr_retire_0, writePC};
+xor_2 = XOR{ghr_fetch_1, readPC};
+xor_3 = XOR{ghr_retire_1, writePC};
+
+table_2bitcntr_0 = TABLE_2BITCNTR#(16384) {xor_0, writeTaken, xor_1, writeValid};  
+table_2bitcntr_1 = TABLE_2BITCNTR#(16384) {xor_2, writeTaken, xor_3, writeValid};
+
+table_2bitcntr_2 = TABLE_2BITCNTR#(16384) {xor_1, writeTaken, xor_1, writeValid};  
+table_2bitcntr_3 = TABLE_2BITCNTR#(16384) {xor_3, writeTaken, xor_3, writeValid};
+
+equal_0 = EQUAL{table_2bitcntr_2, writeTaken};
+equal_1 = EQUAL{table_2bitcntr_3, writeTaken};
+
+equal_2 = EQUAL{equal_0,equal_1};
+not_0 = NOT{equal_2};
+
+and_0 = AND{not_0, writeValid};
+
+table_2bitcntr_4 = TABLE_2BITCNTR#(16384) {readPC, equal_0, writePC, and_0};
+
+prediction = MUX{table_2bitcntr_4,table_2bitcntr_1, table_2bitcntr_0};
