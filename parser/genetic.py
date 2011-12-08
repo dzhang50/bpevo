@@ -8,13 +8,12 @@ from sets import Set
 from shutil import copytree, move
 
 POPULATION = 12; # MUST BE DIVISIBLE BY 4
-ELITE_SIZE = 4
 MAX_LINES = 6;
-SEED = 983;
+SEED = 981;
 MAX_THREADS = min(12,POPULATION);
-STAGNATION_THRESHOLD = 4; # Number of iterations where local min doesnt change
+STAGNATION_THRESHOLD = 2; # Number of iterations where local min doesnt change
 MUTATION_INIT = 2;  # Number of mutations per mating
-MUTATION_THRESHOLD = 100; # Maximum number of mutations
+MUTATION_THRESHOLD = 30; # Maximum number of mutations
 NUM_ITER = 4;
 
 # Function for getting the new random number seed
@@ -60,31 +59,13 @@ def emerSel(pred):
     print matePred;
     return matePred;
 
-# Setup
-os.system("make java");
-os.system("rm -rf predictors");
-os.system("rm -f results");
-os.system("rm -rf runs/results/*");
-os.system("echo '' > results");
-os.system('mkdir predictors')
 
-# First, compile and generate the initial batch
-init = "java -cp .:antlr-3.4-complete.jar BPLangProg init predictors/iter_0 "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
-print init;
-os.system(init);
-
-best = 100000;
-lastBest = 0;
-mutationRate = MUTATION_INIT;
-iteration = 0;
-current_elite = Set()
-old_elite = Set()
-
-while iteration < NUM_ITER:
-#while true:
+# Generate executables, simulate predictors, return predictors sorted by fitness
+def calcFitness(srcDir):
+    global MAX_THREADS;
     # Generate an executable for every predictor
     os.system("rm -rf bin/*");
-    os.system("make -j"+str(MAX_THREADS)+" SRCDIR=predictors/iter_"+str(iteration));
+    os.system("make -j"+str(MAX_THREADS)+" SRCDIR="+srcDir);
 
     # Next, simulate every predictor (changedir to $PARSER/runs)
     os.chdir("runs");
@@ -112,24 +93,15 @@ while iteration < NUM_ITER:
         predictors.append((trimmedName, int(number)))
 
     predictors.sort(key=lambda predictor: predictor[1])
-    old_elite = current_elite.copy()
-    current_elite.clear()
-    for predictor in predictors[0:ELITE_SIZE]:
-        current_elite.add(predictor[0])
-
-    eliminatedElites = old_elite.difference(current_elite)
-    newElites = current_elite.difference(old_elite)
-
-    for p in predictors:
-        print p
-
-    print "Old elite: " + str(old_elite)
-    print "New elite: " + str(current_elite)
-    print "Eliminated elites: " + str(eliminatedElites)
-    print "Added elites: " + str(newElites)
-
-    # Save the results (changedir to $PARSER)
+    
+    # return to $PARSER
     os.chdir('../..')
+    
+    return predictors;
+
+
+def writeResults(predictors):
+    os.system("cp results resultsBackup");
     f = open("results", "r");
     contents = f.readlines();
     f.close();
@@ -147,11 +119,14 @@ while iteration < NUM_ITER:
         for x in range(len(predictors)):
             f.write(contents[x].rstrip()+", "+str(predictors[x][1])+"\n");
     f.close();
-    
-    # randomly merge predictors using the tournament method in Emer97
-    matePred = emerSel(predictors[0:(len(predictors) - ELITE_SIZE)]);
-    
-    # Generate mutation rate based on last time new local min was found
+
+
+best = 100000;
+lastBest = 0;
+mutationRate = MUTATION_INIT;
+def setMutationRate(predictors):
+    global MUTATION_INIT, MUTATION_THRESHOLD, best, lastBest, mutationRate;
+
     if(predictors[0][1] < best):
         best = predictors[0][1];
         mutationRate = MUTATION_INIT;
@@ -165,50 +140,71 @@ while iteration < NUM_ITER:
             if(mutationRate > MUTATION_THRESHOLD):
                 mutationRate = MUTATION_THRESHOLD;
 
+# Setup
+os.system("make java");
+os.system("rm -rf predictors");
+os.system("rm -f results");
+os.system("rm -rf runs/results/*");
+os.system("echo '' > results");
+os.system('mkdir predictors')
+
+# First, compile and generate the initial batch
+init = "java -cp .:antlr-3.4-complete.jar BPLangProg init predictors/iter_0 "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
+print init;
+os.system(init);
+
+iteration = 0;
+
+while iteration < NUM_ITER:
+#while true:
+    predictors = calcFitness("predictors/iter_"+str(iteration));
+
+    # Save the results
+    writeResults(predictors);
+    
+    # randomly merge predictors using the tournament method in Emer97
+    matePred = emerSel(predictors[0:(len(predictors) - ELITE_SIZE)]);
+    
+    # Generate mutation rate based on last time new local min was found
+    setMutationRate(predictors);
+
     # For each pair, call the mating function twice 
     # (to preserve same population size)
     newIter = -1;
-    os.system("mkdir predictors/iter_"+str(iteration+1));
+    os.system("mkdir predictors/mateIter_"+str(iteration));
     for pred in matePred:
         path = "predictors/iter_"+str(iteration);
         pred1 = path + "/" + pred[0]+"/bplang";
         pred2 = path + "/" + pred[1]+"/bplang";
-        for numChildren in range(4):
+        for numChildren in range(2):
             newIter = newIter+1;
-            os.system("mkdir predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter));
-            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(mutationRate)+" "+str(getSeed());
+            os.system("mkdir predictors/mateIter_"+str(iteration)+"/matePredictor_"+str(newIter));
+            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/mateIter_"+str(iteration)+"/matePredictor_"+str(newIter)+" "+str(mutationRate)+" "+str(getSeed());
             print run;
             os.system(run);
 
-    #os.system("rm -rf results/*");
-
-    #rename and move C code
-    os.chdir('predictors/iter_' + str(iteration))
-    #for eliminated in eliminatedElites:
-    #    move(eliminated, '../iter_' + str(iteration+1) + '/' eliminated.replace("elite_",""))
-
-    for elite in current_elite:
-        newName = "elite_gen_"+ str(iteration) +'_' + elite
-        if not elite.startswith("elite_"):
-            copytree(elite, '../iter_' + str(iteration+1) + '/' + newName)
-        else:
-            copytree(elite, '../iter_' + str(iteration+1) + '/' + elite)
-
-    os.chdir('../../runs/results')
-    #rename and remove result
-    for eliminated in eliminatedElites:
-        os.system('rm -fr ' + eliminated +'*')
-
-    for addition in newElites:
-        newName = "elite_gen_"+ str(iteration) +'_' + addition
-        move(addition, newName)
-        move(addition + '.result', newName + '.result')
-        current_elite.remove(addition)
-        current_elite.add(newName)
+    # Calculate performance for new predictors
+    matePredictors = calcFitness("predictors/mateIter_"+str(iteration));
     
-    #eliminatedElites = old_elite.difference(current_elite)
-    #newElites = current_elite.difference(old_elite)
+    # Merge predictors
+    predictors.extend(matePredictors);
+    predictors.sort(key=lambda predictor: predictor[1]);
+    
+    for p in predictors:
+        print p;
 
-    os.chdir('../..')
+    # Construct new generation
+    os.system("mkdir predictors/iter_"+str(iteration+1));
+    newIter = 0;
+    for i in range(POPULATION):
+        dest = " predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter);
+        os.system("mkdir "+dest);
+        if(predictors[i][0].count("mate") == 0):
+            os.system("cp predictors/iter_"+str(iteration)+"/"+predictors[i][0]+"/*"+dest);
+        else:
+            os.system("cp predictors/mateIter_"+str(iteration)+"/"+predictors[i][0]+"/*"+dest);
+
+        newIter = newIter + 1;
+        
 
     iteration = iteration + 1;
