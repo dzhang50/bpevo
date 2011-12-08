@@ -17,6 +17,8 @@ public class Node {
   public String percentage;
   public String msg;
   public List<Node> children;
+  public Node parent;
+  public Node parentNodePtr;
   public Node nodePtr;
 
   public Node( NodeType type ) {
