@@ -4,15 +4,18 @@
 # such as calling the Makefile, doing parsing, etc
 
 import os, sys, re, glob, random;
+from sets import Set
+from shutil import copytree, move
 
 POPULATION = 12; # MUST BE DIVISIBLE BY 4
-MAX_LINES = 100;
+ELITE_SIZE = 4
+MAX_LINES = 6;
 SEED = 983;
-MAX_THREADS = 12;
+MAX_THREADS = min(12,POPULATION);
 STAGNATION_THRESHOLD = 4; # Number of iterations where local min doesnt change
 MUTATION_INIT = 2;  # Number of mutations per mating
 MUTATION_THRESHOLD = 100; # Maximum number of mutations
-NUM_ITER = 10;
+NUM_ITER = 4;
 
 # Function for getting the new random number seed
 def getSeed():
@@ -61,6 +64,7 @@ def emerSel(pred):
 os.system("make java");
 os.system("rm -rf predictors");
 os.system("rm -f results");
+os.system("rm -rf runs/results/*");
 os.system("echo '' > results");
 os.system('mkdir predictors')
 
@@ -73,6 +77,8 @@ best = 100000;
 lastBest = 0;
 mutationRate = MUTATION_INIT;
 iteration = 0;
+current_elite = Set()
+old_elite = Set()
 
 while iteration < NUM_ITER:
 #while true:
@@ -82,7 +88,12 @@ while iteration < NUM_ITER:
 
     # Next, simulate every predictor (changedir to $PARSER/runs)
     os.chdir("runs");
-    os.system("rm -rf results/*");
+    results = glob.glob('results/*')
+    for predictor in results:
+         if not os.path.basename(predictor).startswith("elite"):
+             os.system("rm -rf " + predictor)
+        
+    #os.system("rm -rf results/*");
     os.system("./run.py "+str(MAX_THREADS));
 
     # Get the results, taken from cull.py (changedir to $PARSER/runs/results)
@@ -101,9 +112,21 @@ while iteration < NUM_ITER:
         predictors.append((trimmedName, int(number)))
 
     predictors.sort(key=lambda predictor: predictor[1])
-    
+    old_elite = current_elite.copy()
+    current_elite.clear()
+    for predictor in predictors[0:ELITE_SIZE]:
+        current_elite.add(predictor[0])
+
+    eliminatedElites = old_elite.difference(current_elite)
+    newElites = current_elite.difference(old_elite)
+
     for p in predictors:
         print p
+
+    print "Old elite: " + str(old_elite)
+    print "New elite: " + str(current_elite)
+    print "Eliminated elites: " + str(eliminatedElites)
+    print "Added elites: " + str(newElites)
 
     # Save the results (changedir to $PARSER)
     os.chdir('../..')
@@ -126,7 +149,7 @@ while iteration < NUM_ITER:
     f.close();
     
     # randomly merge predictors using the tournament method in Emer97
-    matePred = emerSel(predictors);
+    matePred = emerSel(predictors[0:(len(predictors) - ELITE_SIZE)]);
     
     # Generate mutation rate based on last time new local min was found
     if(predictors[0][1] < best):
@@ -156,4 +179,36 @@ while iteration < NUM_ITER:
             run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/iter_"+str(iteration+1)+"/predictor_"+str(newIter)+" "+str(mutationRate)+" "+str(getSeed());
             print run;
             os.system(run);
+
+    #os.system("rm -rf results/*");
+
+    #rename and move C code
+    os.chdir('predictors/iter_' + str(iteration))
+    #for eliminated in eliminatedElites:
+    #    move(eliminated, '../iter_' + str(iteration+1) + '/' eliminated.replace("elite_",""))
+
+    for elite in current_elite:
+        newName = "elite_gen_"+ str(iteration) +'_' + elite
+        if not elite.startswith("elite_"):
+            copytree(elite, '../iter_' + str(iteration+1) + '/' + newName)
+        else:
+            copytree(elite, '../iter_' + str(iteration+1) + '/' + elite)
+
+    os.chdir('../../runs/results')
+    #rename and remove result
+    for eliminated in eliminatedElites:
+        os.system('rm -fr ' + eliminated +'*')
+
+    for addition in newElites:
+        newName = "elite_gen_"+ str(iteration) +'_' + addition
+        move(addition, newName)
+        move(addition + '.result', newName + '.result')
+        current_elite.remove(addition)
+        current_elite.add(newName)
+    
+    #eliminatedElites = old_elite.difference(current_elite)
+    #newElites = current_elite.difference(old_elite)
+
+    os.chdir('../..')
+
     iteration = iteration + 1;

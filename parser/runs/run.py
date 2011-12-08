@@ -11,14 +11,16 @@ processes = list()
 max_processes = int(sys.argv[1])
 
 for name in files:
-    #print name
-    processes.append(subprocess.Popen([command, os.path.basename(name)]))
-    if len(processes) >= max_processes:
-        os.wait()
-        for p in processes:
-            if(p.poll() is not None):
-                processes.remove(p);
-                break;
+    if not os.path.basename(name).startswith("elite"):
+        processes.append(subprocess.Popen([command, os.path.basename(name)]))
+        if len(processes) >= max_processes:
+            os.wait()
+            for p in processes:
+                if(p.poll() is not None):
+                    processes.remove(p);
+                    break;
+    else:
+        print name + ' is an elite predictor, results cached'
 
 #print len(processes)
 
