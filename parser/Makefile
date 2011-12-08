@@ -28,9 +28,9 @@ java:
 	java -cp antlr-3.4-complete.jar org.antlr.Tool BPLang.g
 	javac -cp .:antlr-3.4-complete.jar BPLangProg.java
 
-gen:
+init:
 	$(MAKE) java
-	java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors 40 80 411
+	java -cp .:antlr-3.4-complete.jar BPLangProg init predictors 40 80 411
 #	mkdir -p predictors/mate
 #	java -cp .:antlr-3.4-complete.jar BPLangProg mate predictors/predictor_1/bplang predictors/predictor_3/bplang predictors/mate 1 42 
 

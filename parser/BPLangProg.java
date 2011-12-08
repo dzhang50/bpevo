@@ -27,7 +27,7 @@ public class BPLangProg {
     Random rand = new Random(127);
     
     // gen <root dir> <number of predictors to generate> <max size of each predictor in lines> <rand seed>
-    if(args[0].equals("gen")) {
+    if(args[0].equals("init")) {
       String rootDir = args[1];
       int numPredictors = Integer.parseInt(args[2]);
       int maxSize = Integer.parseInt(args[3]);
@@ -87,6 +87,14 @@ public class BPLangProg {
       addInputKeywords(inputKeywords);
       Node nodeTree = buildTree("prediction", tree, inputKeywords);
       System.out.println(nodeTree);
+    }
+    // gen <path to bplang> <path to file output>
+    else if(args[0].equals("gen")) {
+      Node node = getInitialNode(args[1]);
+      String genPath = args[2];
+      pareTree(node);
+      String n = nodeToString(node);
+      genCpp(genPath, n);
     }
 
     /*

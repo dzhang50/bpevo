@@ -65,9 +65,9 @@ os.system("echo '' > results");
 os.system('mkdir predictors')
 
 # First, compile and generate the initial batch
-gen = "java -cp .:antlr-3.4-complete.jar BPLangProg gen predictors/iter_0 "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
-print gen;
-os.system(gen);
+init = "java -cp .:antlr-3.4-complete.jar BPLangProg init predictors/iter_0 "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());
+print init;
+os.system(init);
 
 best = 100000;
 lastBest = 0;
