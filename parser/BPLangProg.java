@@ -440,9 +440,10 @@ public class BPLangProg {
     else {
       crossIdx2 = rand.nextInt(size2); // 0 is root, so avoid 0
     }
-    
-    Node cross1 = getTreeIdx(node1, 0, crossIdx1);
-    Node cross2 = getTreeIdx(node2, 0, crossIdx2);
+    //System.out.println("size1: "+size1+", crossIdx1: "+crossIdx1);
+    //System.out.println("size2: "+size2+", crossIdx2: "+crossIdx2);
+    Node cross1 = getTreeIdx(node1, new ArrayList<Integer>(Arrays.asList(0)), crossIdx1);
+    Node cross2 = getTreeIdx(node2, new ArrayList<Integer>(Arrays.asList(0)), crossIdx2);
     
     // Swap
     /*
@@ -564,13 +565,15 @@ public class BPLangProg {
   }
 
 
-  public static Node getTreeIdx(Node node, int curIdx, int targetIdx) {
-    if(curIdx == targetIdx) {
+  public static Node getTreeIdx(Node node, List<Integer> curIdx, int targetIdx) {
+    //System.out.println(curIdx+"/"+targetIdx);
+    if(curIdx.get(0) == targetIdx) {
       return node;
     }
     
     for(Node n : node.children) {
-      Node found = getTreeIdx(n, ++curIdx, targetIdx);
+      curIdx.set(0,curIdx.get(0)+1); // curIdx++
+      Node found = getTreeIdx(n, curIdx, targetIdx);
       if(found != null) {
 	return found;
       }
