@@ -163,7 +163,7 @@ while iteration < NUM_ITER:
     writeResults(predictors);
     
     # randomly merge predictors using the tournament method in Emer97
-    matePred = emerSel(predictors[0:(len(predictors) - ELITE_SIZE)]);
+    matePred = emerSel(predictors);
     
     # Generate mutation rate based on last time new local min was found
     setMutationRate(predictors);
