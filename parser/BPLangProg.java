@@ -40,7 +40,7 @@ public class BPLangProg {
 	do {
 	  pred = genPredictor("library", maxSize, rand);
 	  node = getInitialNodeString(pred);
-	} while(verifyPredictor(node) == false);
+	} while(verifyPredictor(node) == false || verifyGenPredictor(node) == false);
 	
 	runSysCmd("mkdir "+rootDir+"/predictor_"+i);
 	//System.out.println("Raw: \n"+pred);
@@ -602,9 +602,9 @@ public class BPLangProg {
   public static boolean verifyPredictor(Node node) throws Exception {
     /* REQUIREMENTS:
 
-    1. Maximum depth of 5
-    2. Maximum 100 nodes
-    3. Maximum 20 actual nodes in use
+    1. Maximum depth of 12
+    2. Maximum 150 nodes
+    3. Maximum 40 actual nodes in use
     */
 
     List<String> inputKeywords = new ArrayList<String>();
@@ -625,7 +625,28 @@ public class BPLangProg {
 
     return true;
   }
+  
+  public static boolean verifyGenPredictor(Node node) throws Exception {
+    /* REQUIREMENTS:
 
+    1. Minimum depth of 2
+    2. Minimum 4 nodes in use
+    */
+
+    List<String> inputKeywords = new ArrayList<String>();
+    addInputKeywords(inputKeywords);
+    Node nodeTree = buildTree("prediction", node, inputKeywords, null);
+    if(treeDepth(nodeTree) < 2) {
+      return false;
+    }
+    
+    if(treeSize(nodeTree) < 4) {
+      return false;
+    }
+    
+
+    return true;
+  }
 
   public static List<String> nodeOutputs(Node node) {
     List<String> outputs = new ArrayList<String>();
@@ -1133,7 +1154,7 @@ public class BPLangProg {
       }
     }
 
-    return max;
+    return max+1;
   }
 
   public static int treeSize(Node node) {
