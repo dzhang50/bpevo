@@ -1,0 +1,1 @@
+prediction = TABLE_CNTR#(16384,1) {readPC, writeTaken, writePC, writeValid};

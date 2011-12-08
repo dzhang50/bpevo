@@ -6,7 +6,7 @@ CONCAT {null%0, null%0};
 MUX {EQUAL%20, TABLE_2BITCNTR%20, TABLE_2BITCNTR%20};
 MSB {null%0};
 NOT {null%0};
-HASH {null%0};
+HASH #([128:8]%100){null%0};
 EQUAL {null%0, null%0};
 SHIFT#([3:0]%100) {null%0, null%0};
 GHR_FETCH#([128:8]%100);

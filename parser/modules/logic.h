@@ -73,7 +73,9 @@ class HASH
 {
 protected:
     hash< dynamic_bitset<> > bitset_hash;
+    size_t length;
 public:
+    HASH(size_t lengthInput) : length(lengthInput) {}
     dynamic_bitset<> Invocate (dynamic_bitset<> input);
 };
 
@@ -313,7 +315,9 @@ dynamic_bitset<> SHIFT::Invocate (dynamic_bitset<> input, dynamic_bitset<> shift
 
 dynamic_bitset<> HASH::Invocate (dynamic_bitset<> input)
 {
-    return (dynamic_bitset<> (sizeof(size_t),bitset_hash(input)));
+    dynamic_bitset<> returnVal(sizeof(size_t),bitset_hash(input));
+    returnVal.resize(length);
+    return (returnVal);
 }
 
 

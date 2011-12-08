@@ -32,7 +32,7 @@ int main()
     for (ulong i = 0; i < output.size(); i++)
     {
 //	cout << output[i] << ", MSB:" << MSB().Invocate(output[i])<< endl;
-	cout << bimodal.Invocate(dynamic_bitset<> (4,i),in_data,  dynamic_bitset<> (4,0), dynamic_bitset<> (1,0ul)) << ", MSB:" << MSB().Invocate(output[i])<< " HASH: " << HASH().Invocate(output[i]) << endl;
+	cout << bimodal.Invocate(dynamic_bitset<> (4,i),in_data,  dynamic_bitset<> (4,0), dynamic_bitset<> (1,0ul)) << ", MSB:" << MSB().Invocate(output[i])<< " HASH: " << HASH(4).Invocate(output[i]) << endl;
     }
 /*
     vector<dynamic_bitset<> > single;
