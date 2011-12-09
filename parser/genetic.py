@@ -8,13 +8,13 @@ from sets import Set
 from shutil import copytree, move
 
 POPULATION = 12; # MUST BE DIVISIBLE BY 4
-MAX_LINES = 6;
+MAX_LINES = 12;
 SEED = 981;
 MAX_THREADS = min(12,POPULATION);
-STAGNATION_THRESHOLD = 2; # Number of iterations where local min doesnt change
+STAGNATION_THRESHOLD = 8; # Number of iterations where local min doesnt change
 MUTATION_INIT = 2;  # Number of mutations per mating
-MUTATION_THRESHOLD = 30; # Maximum number of mutations
-NUM_ITER = 4;
+MUTATION_THRESHOLD = 16; # Maximum number of mutations
+NUM_ITER = 10;
 
 # Function for getting the new random number seed
 def getSeed():
@@ -158,9 +158,14 @@ iteration = 0;
 while iteration < NUM_ITER:
 #while true:
     predictors = calcFitness("predictors/iter_"+str(iteration));
-
+    
     # Save the results
     writeResults(predictors);
+    
+    # Use seed predictors
+    seedPredictors = calcFitness("seed");
+    predictors.extend(seedPredictors);
+    predictors.sort(key=lambda predictor: predictor[1]);
     
     # randomly merge predictors using the tournament method in Emer97
     matePred = emerSel(predictors);
@@ -174,8 +179,17 @@ while iteration < NUM_ITER:
     os.system("mkdir predictors/mateIter_"+str(iteration));
     for pred in matePred:
         path = "predictors/iter_"+str(iteration);
-        pred1 = path + "/" + pred[0]+"/bplang";
-        pred2 = path + "/" + pred[1]+"/bplang";
+        pred1 = "";
+        pred2 = "";
+        if(pred[0].count("seed") == 0):
+            pred1 = path + "/" + pred[0]+"/bplang";
+        else:
+            pred1 = "seed/" + pred[0]+"/bplang";
+        if(pred[1].count("seed") == 0):
+            pred2 = path + "/" + pred[1]+"/bplang";
+        else:
+            pred2 = "seed/" + pred[1]+"/bplang";
+
         for numChildren in range(2):
             newIter = newIter+1;
             os.system("mkdir predictors/mateIter_"+str(iteration)+"/matePredictor_"+str(newIter));
@@ -190,6 +204,18 @@ while iteration < NUM_ITER:
     predictors.extend(matePredictors);
     predictors.sort(key=lambda predictor: predictor[1]);
     
+    for p in predictors:
+        print p;
+        
+    # Remove seed predictors
+    i = 0;
+    while(i < len(predictors)):
+        if(predictors[i][0].count("seed") == 1):
+            predictors.remove(predictors[i]);
+        else:
+            i=i+1;
+
+
     for p in predictors:
         print p;
 
