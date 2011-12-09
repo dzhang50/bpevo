@@ -7,14 +7,14 @@ import os, sys, re, glob, random;
 from sets import Set
 from shutil import copytree, move
 
-POPULATION = 12; # MUST BE DIVISIBLE BY 4
+POPULATION = 24; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 12;
 SEED = 981;
 MAX_THREADS = min(12,POPULATION);
 STAGNATION_THRESHOLD = 8; # Number of iterations where local min doesnt change
-MUTATION_INIT = 2;  # Number of mutations per mating
+MUTATION_INIT = 1;  # Number of mutations per mating
 MUTATION_THRESHOLD = 16; # Maximum number of mutations
-NUM_ITER = 10;
+NUM_ITER = 100;
 
 # Function for getting the new random number seed
 def getSeed():
@@ -215,9 +215,6 @@ while iteration < NUM_ITER:
         else:
             i=i+1;
 
-
-    for p in predictors:
-        print p;
 
     # Construct new generation
     os.system("mkdir predictors/iter_"+str(iteration+1));
