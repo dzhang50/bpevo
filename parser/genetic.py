@@ -10,6 +10,7 @@ from shutil import copytree, move
 POPULATION = 24; # MUST BE DIVISIBLE BY 4
 MAX_LINES = 12;
 SEED = 981;
+CLUSTER_ENABLE = 1;
 MAX_THREADS = min(12,POPULATION);
 STAGNATION_THRESHOLD = 8; # Number of iterations where local min doesnt change
 MUTATION_INIT = 1;  # Number of mutations per mating
@@ -90,8 +91,18 @@ def calcFitness(srcDir):
                 number = line.rsplit(':')[1].strip()
                 break
 
-        predictors.append((trimmedName, int(number)))
+        predictors.append((trimmedName, int(number), int(number)))
 
+    # Clustering avoidance algorithm
+    count = dict();
+    for x in range(len(predictors)):
+        if(predictors[x][1] in count):
+            count[predictors[x][1]] += 1;
+        else:
+            count[predictors[x][1]] = 1;
+        newNumber = predictors[x][1] * count[predictors[x][1]];
+        predictors[x] = (predictors[x][0], int(predictors[x][1]), int(newNumber));
+    
     predictors.sort(key=lambda predictor: predictor[1])
     
     # return to $PARSER
@@ -202,7 +213,10 @@ while iteration < NUM_ITER:
     
     # Merge predictors
     predictors.extend(matePredictors);
-    predictors.sort(key=lambda predictor: predictor[1]);
+    if(CLUSTER_ENABLE == 1):
+        predictors.sort(key=lambda predictor: predictor[2]);
+    else:
+        predictors.sort(key=lambda predictor: predictor[1]);
     
     for p in predictors:
         print p;
