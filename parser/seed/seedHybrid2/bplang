@@ -1,0 +1,20 @@
+table_cntr_0 = TABLE_2BITCNTR#(16384)  {readPC, writeTaken, writePC, writeValid};
+
+ghr_fetch_0 = GHR_FETCH#(32);
+ghr_retire_0 = GHR_RETIRE#(32);
+xor_0 = XOR{ghr_fetch_0, readPC};
+xor_1 = XOR{ghr_retire_0, writePC};
+
+table_2bitcntr_0 = TABLE_2BITCNTR#(8192) {xor_0, writeTaken, xor_1, writeValid};
+
+hash_0 = HASH#(32){readPC};
+hash_1 = HASH#(32){writePC};
+
+table_0 = TABLE#(16384,32) {xor_0, hash_1, xor_1, writeValid};
+
+equal_0 = EQUAL{table_0, hash_0};
+
+prediction = MUX{equal_0, table_cntr_0, table_2bitcntr_0};
+
+
+
