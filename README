@@ -1,0 +1,70 @@
+
+
+---- Prerequisites ----
+
+1. All the code of interest is actually located in the $ROOT/parser directory.
+
+2. You will need to create an empty "bin" directory at $ROOT/parser/bin
+
+3. You will need to create an empty "results" directory at $ROOT/parser/runs/results
+
+4. You will need to set the following environment variables. GENETIC_BP_HOME must be set to $ROOT/parser. Example:
+
+export GENETIC_BP_HOME=/proj/dzhang/prediction/bp-evo/parser
+export CPATH=$CPATH:$GENETIC_BP_HOME:$GENETIC_BP_HOME/readerlib:$GENETIC_BP_HOME/modules
+
+5. You will need to download and install the C++ BOOST library. We used the following tools:
+   * java 1.6.0_14
+   * Python 2.5.2
+   * g++ 4.3.2 (Ubuntu 4.3.2-lubuntu12)
+   * C++ BOOST 1.48.0
+
+We tested on:
+   * 2.6.27-17-generic #1 SMP Fri Mar 12 02:08:25 UTC 2010 x86_64 GNU/Linux
+
+---- To Run ----
+
+The main script to run is $ROOT/parser/genetic.py. It has the following options.
+The options are only accessible by opening the file. You don't pass any 
+parameters to the script. Run by typing:
+
+./genetic.py
+
+ 
+POPULATION = 24; # MUST BE DIVISIBLE BY 4
+MAX_LINES = 12;  # Maximum number of lines in each generated branch predictor
+SEED = 981;      # Seed for reproducibility
+CLUSTER_ENABLE = 1; # Enable clustering detection
+MAX_THREADS = min(12,POPULATION); # Set to the number of threads
+STAGNATION_THRESHOLD = 8; # Number of iterations where local min doesnt change
+MUTATION_INIT = 1;  # Number of mutations per mating
+MUTATION_THRESHOLD = 16; # Maximum number of mutations
+NUM_ITER = 100; # Number of iterations before quitting
+
+
+Results are in $ROOT/parser/results. It can be interpreted as a CSV file.
+
+The code for every generated branch predictor for every iteration is located at:
+$ROOT/parser/predictors
+
+
+BPLangProg performs all the lexing, parsing, etc. To run, type:
+
+make java
+java -cp .:antlr-3.4-complete.jar BPLangProg <command>
+
+BPLangProg has a number of commands:
+
+// Generates initial pool of predictors
+init <root dir> <number of predictors to generate> <max size of each predictor in lines> <rand seed>
+
+
+// Mates two predictors
+mate <path to mother> <path to father> <path to child directory> <num mutations> <rand seed>
+
+
+// Visually shows a tree for a bplang file
+view <path to bplang>
+
+// Generates a predictor.cc file provided a bplang file
+gen <path to bplang> <path to file output>
