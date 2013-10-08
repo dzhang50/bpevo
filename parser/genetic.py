@@ -1,21 +1,34 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
 # This is the highest level script. It runs everything necessary
 # such as calling the Makefile, doing parsing, etc
 
-import os, sys, re, glob, random;
+import argparse, os, sys, re, glob, random;
 from sets import Set
 from shutil import copytree, move
 
-POPULATION = 24; # MUST BE DIVISIBLE BY 4
-MAX_LINES = 12;
-SEED = 981;
-CLUSTER_ENABLE = 1;
+parser = argparse.ArgumentParser(description='Paramters.');
+parser.add_argument('name', help='name for results file');
+parser.add_argument('-p', type=int, help='Population size (24)', default=24);
+parser.add_argument('-l', type=int, help='Maximum lines per predictor (12)', default=12);
+parser.add_argument('-i', type=int, help='Number of generations to run (10)', default=10);
+parser.add_argument('-m', type=int, help='NUmber of mutations per mating (1)', default=1);
+parser.add_argument('-mt', type=int, help='Maximum number of mutations (16)', default=16);
+parser.add_argument('-st', type=int, help='Number of iterations where local min doesnt change (8)', default=8);
+parser.add_argument('-s', type=int, help='Seed for reproducibility (981)', default=981);
+parser.add_argument('-c', type=int, help='Use clustering (1)', default=1);
+args=parser.parse_args();
+
+POPULATION=args.p;
+MAX_LINES=args.l;
+SEED=args.s; 
+CLUSTER_ENABLE=args.c;
+STAGNATION_THRESHOLD=args.st; 
+MUTATION_INIT=args.m;
+MUTATION_THRESHOLD=args.mt;
+NUM_ITER=args.i;
 MAX_THREADS = min(12,POPULATION);
-STAGNATION_THRESHOLD = 8; # Number of iterations where local min doesnt change
-MUTATION_INIT = 1;  # Number of mutations per mating
-MUTATION_THRESHOLD = 16; # Maximum number of mutations
-NUM_ITER = 100;
+NAME=args.name;
 
 # Function for getting the new random number seed
 def getSeed():
@@ -75,7 +88,6 @@ def calcFitness(srcDir):
          if not os.path.basename(predictor).startswith("elite"):
              os.system("rm -rf " + predictor)
         
-    #os.system("rm -rf results/*");
     os.system("./run.py "+str(MAX_THREADS));
 
     # Get the results, taken from cull.py (changedir to $PARSER/runs/results)
@@ -112,23 +124,11 @@ def calcFitness(srcDir):
 
 
 def writeResults(predictors):
-    os.system("cp results resultsBackup");
-    f = open("results", "r");
-    contents = f.readlines();
-    f.close();
-
-    print "len contents: "+str(len(contents));
-    print contents;
-
-    f = open("results", "w");
-    # Init
-    if(len(contents) == 1):
-        for val in predictors:
-            f.write(str(val[1])+"\n");
-    # Append
-    else:
-        for x in range(len(predictors)):
-            f.write(contents[x].rstrip()+", "+str(predictors[x][1])+"\n");
+    os.system("mkdir results/");
+    os.system("touch results/"+NAME);
+    f = open("results/"+NAME, "w");
+    for val in predictors:
+        f.write(str(val[1])+"\n");
     f.close();
 
 
@@ -154,9 +154,7 @@ def setMutationRate(predictors):
 # Setup
 os.system("make java");
 os.system("rm -rf predictors");
-os.system("rm -f results");
 os.system("rm -rf runs/results/*");
-os.system("echo '' > results");
 os.system('mkdir predictors')
 
 # First, compile and generate the initial batch
