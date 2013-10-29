@@ -47,7 +47,7 @@ public class BPLangProg {
 	genBPLang(rootDir+"/predictor_"+i+"/bplang", pred);
 	pareTree(node, "prediction");
 	pred = nodeToString(node);
-	//System.out.println("Pared: \n"+pred);
+        //System.out.println("Pared: \n"+pred);
 	genCpp(rootDir+"/predictor_"+i+"/predictor.cc",pred);
 	runSysCmd("cp modules/predictor.h "+rootDir+"/predictor_"+i+"/");
 	
@@ -64,14 +64,23 @@ public class BPLangProg {
       Node child;
       do {
 	//child = matePredictors(tree1, tree2, rand);
+
 	child = treeCrossover(tree1, tree2, rand);
-	for(int i = 0; i < numMutations; i++) {
+        System.out.println("Mutating: \n"+child);
+        //System.out.println(child);
+        for(int i = 0; i < numMutations; i++) {
 	  mutatePredictor(child, "library", rand);
 	}
       } while(verifyPredictor(child) == false);
+      System.out.println("Predictor successfully mutated: \n"+child);
+      //System.out.println(child);
       
       String n = nodeToString(child);
       
+      //System.out.println("node to string: "+child);
+
+      System.out.println("New predictor: \n"+n);
+
       genBPLang(childPath+"/bplang", n);
       pareTree(child, "prediction");
       n = nodeToString(child);
@@ -79,12 +88,16 @@ public class BPLangProg {
 
       //r.exec("mv predictor.cc "+childPath);
       //r.exec("mv bplang "+childPath);
+      
       runSysCmd("cp modules/predictor.h "+childPath);
     }
+
     // view <path to bplang>
     else if(args[0].equals("view")) {
       Node tree = getInitialNode(args[1]);
       List<String> inputKeywords = new ArrayList<String>();
+    
+      // The more keywords added, the less depth created in general
       addInputKeywords(inputKeywords);
       Node nodeTree = buildTree("prediction", tree, inputKeywords, null);
       System.out.println(nodeTree);
@@ -265,6 +278,7 @@ public class BPLangProg {
     
     if(sel == 0) {
       //---------- Change a wire connection -------------------
+      System.out.println("Changing a wire connection!");
       int nodeIdx = -1;
       
       // Make sure predictor has at least one input
@@ -298,6 +312,7 @@ public class BPLangProg {
     }
     else if(sel == 1){
       //------------ Change a parameter -----------------------
+      System.out.println("Changing a parameter!");
       int nodeIdx = -1;
       
       // Make sure predictor has at least one parameter
@@ -354,6 +369,7 @@ public class BPLangProg {
     }
     else if(sel == 2){
       //---------------- Add a node ------------------------
+      System.out.println("Adding a node!");
       
       // Generate a 1-line predictor and add it 
       Node lib = getInitialNode(file);
@@ -388,9 +404,11 @@ public class BPLangProg {
 	else
 	  x = 0;
       }
+      node.children.add(node.children.size(), newNode.children.get(0));
     }
     else {
       //---------------- Delete a node ------------------------
+      System.out.println("Deleting a node!");
       if(node.children.size() <= 2) {
 	return;
       }
@@ -421,47 +439,58 @@ public class BPLangProg {
     Node origNode1 = new Node(node1);
     Node origNode2 = new Node(node2);
   
-    // Randomly select node
+    // Calculate the depth of the shallowest child
     int size1 = treeSize(node1);
     int size2 = treeSize(node2);
     
+    // Get split locations
     int crossIdx1;
-    if(size1 < 3) {
-      crossIdx1 = size1 - 1;
-    }
-    else {
-      crossIdx1 = rand.nextInt(size1-1)+1; // 0 is root, so avoid 0
+    crossIdx1 = rand.nextInt(size1);
+    if(crossIdx1 > 3){
+      crossIdx1 = 3;
     }
 
     int crossIdx2;
-    if(size2 == 1) {
-      crossIdx2 = 0;
+    crossIdx2 = rand.nextInt(size2); // 0 is root, so avoid 0
+    if(crossIdx2 < size2 - 3){
+      crossIdx2 = size2 - 3;
     }
-    else {
-      crossIdx2 = rand.nextInt(size2); // 0 is root, so avoid 0
-    }
+
     //System.out.println("size1: "+size1+", crossIdx1: "+crossIdx1);
     //System.out.println("size2: "+size2+", crossIdx2: "+crossIdx2);
+    
+    // getTreeIdx function finds the node at the layer "Idx" (new root)
     Node cross1 = getTreeIdx(node1, new ArrayList<Integer>(Arrays.asList(0)), crossIdx1);
     Node cross2 = getTreeIdx(node2, new ArrayList<Integer>(Arrays.asList(0)), crossIdx2);
+
+    // cross1 is the node getting replaced
+    //System.out.println("Cross 1:");
+    //System.out.println(cross1);
+    //System.out.println("Cross 2:");
+    //System.out.println(cross2);
+
+    // 
+    // Swap    
+    //System.out.println("Initial1:\n"+node1);
+    //System.out.println("Initial2:\n"+node2);
+    //System.out.println("Swap1:\n"+cross1);
+    //System.out.println("Swap2:\n"+cross2);
     
-    // Swap
-    /*
-    System.out.println("Initial1:\n"+node1);
-    System.out.println("Initial2:\n"+node2);
-    System.out.println("Swap1:\n"+cross1);
-    System.out.println("Swap2:\n"+cross2);
     swapNode(node1, cross1, cross2);
-    System.out.println("Swapped:\n"+node1);
-    */
+    
+    //System.out.println("Swapped:\n"+node1);
+    
     // Remove branch from n1
     //System.out.println(n1);
+    
     List<String> removeNodes = new ArrayList<String>();
+    // Remove nodes after the Idx node of the first tree
     getNodeList(cross1, removeNodes);
     int removeIdx = -1;
     int nodeIdx = -1;
     String removeOutput = cross1.instanceName;
     for(int i = 0; i < n1.children.size(); i++) {
+      //System.out.println(n1.children.get(i).instanceName);
       if(removeNodes.contains(n1.children.get(i).children.get(0).msg)) {
 	n1.children.remove(i);
 	
@@ -478,34 +507,59 @@ public class BPLangProg {
     // Find a free output name to use
     int nameCntr;
     String addOutput;
+    int j=0;
     int first = 1;
     Node toAdd = new Node(n2);
+    
+    //System.out.println(toAdd);
+    //System.out.println(n2);
+    
     pareTree(toAdd, cross2.instanceName);
-    //System.out.println("pared tree:\n"+toAdd);
-
-    for(Node n : toAdd.children) {
+    
+    //System.out.println("Instance: "+cross2.instanceName);
+    //System.out.println("Node: "+toAdd.msg.toLowerCase());
+    //System.out.println("MSG 0: "+toAdd.children.get(0).msg);
+    
+    for (Node n : toAdd.children) {
       nameCntr = 0;
+      
+      //System.out.println("Child: "+n.msg.toLowerCase()+"\n");
+      //System.out.println(n1);
+      
       do {
-	addOutput = n.msg.toLowerCase()+"_"+nameCntr;
+        
+        //System.out.println(n.msg.toLowerCase()+"_"+nameCntr);
+        
+        addOutput = toAdd.children.get(j).msg.toLowerCase()+"_"+nameCntr;
 	nameCntr++;
       } while(nameInUse(n1, addOutput));
     
       // Replace old output name with new output name from n2
-      if(first == 1) {
+      //System.out.println(cross2.instanceName);
+      //System.out.println(toAdd.children.get(j).instanceName);
+      
+      if(j == toAdd.children.size()-1){ //previously cross2.instanceName.equals(toAdd.children.get(j))
+        
+        //System.out.println("Removing "+removeOutput+", added at "+addOutput);
+
 	renameInput(n1, removeOutput, addOutput);
 	first = 0;
       }
-      n.children.get(0).msg = addOutput;
-
-      // Add output
-      n1.children.add(removeIdx, new Node(n));
+      toAdd.children.get(j).children.get(0).msg = addOutput;
+      n1.children.add(removeIdx, new Node(toAdd.children.get(j)));
+      j++;
     }
-
+    
+    //System.out.println(n1);
+   
     // Cleanup
+    
     fixInputs(n1, rand);
     fixOutput(n1);
+    
     //Node node3 = buildTree("prediction", n1, vars, null);
     //System.out.println("Final:\n"+node1);
+    
     return n1;
   }
   
@@ -553,8 +607,10 @@ public class BPLangProg {
 
     //for(Node n : tree.children) {
     for(int i = 0; i < tree.children.size(); i++) {
-      if(tree.children.get(i).msg.equals(nodeLoc.msg)) {
-	tree.children.set(i, nodeTarget);
+      if(tree.children.get(i).instanceName.equals(nodeLoc.instanceName)) {
+	//System.out.println(tree.children.get(i).instanceName);
+        //System.out.println(nodeLoc.instanceName);
+        tree.children.set(i, nodeTarget);
 	return;
       }
     }
@@ -583,19 +639,145 @@ public class BPLangProg {
   }
 
 
-  public static void fixInputs(Node node, Random rand) {
+  public static void fixInputs(Node node, Random rand){
+    int found, r;
+    int sw1 = 0; 
+    int elements = 0;
+    int delete = 0;
     List<String> outputs = new ArrayList<String>();
     addInputKeywords(outputs);
-    for(Node n : node.children) {
-      for(Node m : n.children) {
-	// If illegal input, change the input to something valid
-	if(m.type == NodeType.INPUT_ID && !outputs.contains(m.msg)) {
-	  m.msg = outputs.get(rand.nextInt(outputs.size()));
-	}
+    
+    // Make sure predictor is short enough
+    // FIXME: Change to maxLines-1
+    if(node.children.size() > 11){
+      for (Node id : node.children.get(11).children){
+        if (id.type == NodeType.OUTPUT_ID){
+          id.msg = "prediction";
+        }
+      }
+
+      // FIXME: Change to maxLines+1
+      while(node.children.size()>12){
+        
+        //System.out.println("REMOVING"+node.children.get(12).children.get(0).msg);
+        //System.out.println("Before :\n"+node);
+        
+        node.children.remove(12);
       }
     }
+    
+    for(Node n : node.children) {
+      elements++;
+
+      // No more modules
+      if (n == null){
+        return;
+      }
+
+      else for(Node id : n.children){
+        found = 0;
+        if (id.type == NodeType.INPUT_ID){
+          for(String o : outputs){
+            if (id.msg.equals(o)){
+              found = 1;
+            }
+          }
+        }
+        if (id.type == NodeType.INPUT_ID && found == 0){
+          
+          //System.out.println("Output "+id.msg+" not found!");
+          //System.out.println(node);
+          String loop = id.msg;
+          if (checkLoop(node, sw1, loop, 0) == 1){
+            //Outputs come first in the attribute listing, 
+            //so random range is one less than number of outputs reached
+            id.msg = outputs.get(rand.nextInt(outputs.size()-1));
+          }
+
+        }
+        if(id.type == NodeType.OUTPUT_ID){
+          outputs.add(id.msg);
+        }
+      }
+      sw1++;
+      // Add the 6 processor input signals to keep depth lower
+      /*if (sw1 % 6 == 0){
+        addInputKeywords(outputs);
+      }*/
+    }
+
+    //System.out.println(node.children);
+
   }
   
+  // Checks for loops in the flat tree node from position sw1, with given outputs seen so far
+  // returns 1 if there is a loop, and the current input should be reassigned
+  // checkLoop also checks if input is valid. if not, returns 1 to be changed
+  public static int checkLoop(Node node, int sw1, String loop, int second){
+    String output = "";
+    int sw = 0;
+    int found = 0;
+    int out = 0;
+
+    // Get the Output name of current node
+    for (Node id : node.children.get(sw1).children) {
+      if (id.type == NodeType.OUTPUT_ID){
+
+        // Check if swap node has been reached, possibly indicating a loop
+        if (id.msg.equals(loop)){
+          found = 1;
+          if (second == 1){
+            //System.out.println("Loop Indeed!!");
+            out = 1;
+          }
+        }
+
+        if (id.msg.equals("looped")){
+          //System.out.println("Found Second Loop!");
+          out = 1;
+        }
+        output = id.msg;
+      }
+      
+    }     
+
+    if (found == 0){
+      //System.out.println("Invalid input!");
+      out = 1;
+    }
+    second = 1;
+
+    if (output.equals("")){
+      System.out.println("Ouput not found!!! Loop check failed!");
+    }
+
+    Node check = new Node(node);
+    // Check for next link that takes node as input
+    for (Node n : check.children){
+      for (Node id : n.children){
+        // 
+        if (id.type == NodeType.INPUT_ID && id.msg.equals(output)){
+
+          // Change output of every intermediate module to "looped"
+          if (n.children.get(0).type == NodeType.OUTPUT_ID){
+            n.children.get(0).msg = "looped";
+          }else{
+            System.out.println("ERROR: OUTPUT_ID IS NOT THE FIRST ELEMENT OF NODE!");
+          }
+
+          //System.out.println("Found another link node: "+id.msg);
+          // Reursively check for original missing input node
+          if (checkLoop(check, sw, loop, second) == 1){
+            return 1;
+          }
+        }
+      }
+      sw++;
+    }
+    
+    return out;    
+  }
+
   public static void fixOutput(Node node) {
     Node lastOutput = node.children.get(node.children.size()-1).children.get(0);
     lastOutput.msg = "prediction";
@@ -1161,15 +1343,28 @@ public class BPLangProg {
   }
 
   public static int treeSize(Node node) {
+    int S;
     if(node.children.size() == 0) {
+      //System.out.println("leaf: "+node.instanceName);
       return 1;
     }
 
     int size = 0;
-    for(Node n : node.children) {
-      size += treeSize(n);
+    //int i = node.children.size();
+    int sizes[] = new int[node.children.size()];
+    int i = 0;
+
+    for(Node n : node.children) { 
+      sizes[i] = treeSize(n); // Get size of trees rooted at the children
+      i++;
     }
 
+    for(i=0; i<node.children.size(); i++){
+      if(size>sizes[i] || size == 0){
+        size = sizes[i]+1;
+      }
+    }
+    
     return size;
   }
   
@@ -1234,6 +1429,7 @@ public class BPLangProg {
     }
 
     if(newNode == null) {
+      System.out.println("ERROR!! \nNodes: \n"+rawNodes);
       throw new Exception("ERROR: Output "+outputName+" not found!");
     }
 

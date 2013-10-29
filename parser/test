@@ -1,5 +1,0 @@
-ghr_fetch_0 = GHR_FETCH#(32);
-ghr_retire_0 = GHR_RETIRE#(32);
-xor_0 = XOR{ghr_fetch_0, readPC};
-xor_1 = XOR{ghr_retire_0, writePC};
-prediction = TABLE_2BITCNTR#(16384) {xor_0, writeTaken, xor_1, writeValid};

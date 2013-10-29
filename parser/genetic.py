@@ -12,7 +12,7 @@ parser.add_argument('name', help='name for results file');
 parser.add_argument('-p', type=int, help='Population size (24)', default=24);
 parser.add_argument('-l', type=int, help='Maximum lines per predictor (12)', default=12);
 parser.add_argument('-i', type=int, help='Number of generations to run (10)', default=10);
-parser.add_argument('-m', type=int, help='NUmber of mutations per mating (1)', default=1);
+parser.add_argument('-m', type=int, help='Number of mutations per mating (1)', default=1);
 parser.add_argument('-mt', type=int, help='Maximum number of mutations (16)', default=16);
 parser.add_argument('-st', type=int, help='Number of iterations where local min doesnt change (8)', default=8);
 parser.add_argument('-s', type=int, help='Seed for reproducibility (981)', default=981);
@@ -29,6 +29,11 @@ MUTATION_THRESHOLD=args.mt;
 NUM_ITER=args.i;
 MAX_THREADS = min(12,POPULATION);
 NAME=args.name;
+
+os.system("date > results/"+NAME);
+f = open("results/"+NAME, "a");
+f.write("\nPOPULATION="+str(POPULATION)+"\nMAX_LINES="+str(MAX_LINES)+"\nSEED="+str(SEED)+"\nCLUSTER_ENABLE="+str(CLUSTER_ENABLE)+"\nSTAGNATION_THRESHOLD="+str(STAGNATION_THRESHOLD)+"\nMUTATION_INIT="+str(MUTATION_INIT)+"\nMUTATION_THRESHOLD="+str(MUTATION_THRESHOLD)+"\nNUM_ITER="+str(NUM_ITER)+"\nMAX_THREADS="+str(MAX_THREADS)+"\nNAME="+str(NAME)+"\n");
+f.close();
 
 # Function for getting the new random number seed
 def getSeed():
@@ -123,12 +128,11 @@ def calcFitness(srcDir):
     return predictors;
 
 
-def writeResults(predictors):
-    os.system("mkdir results/");
-    os.system("touch results/"+NAME);
-    f = open("results/"+NAME, "w");
+def writeResults(predictors, iteration):
+    f = open("results/"+NAME, "a");
+    f.write("\nIteration: "+str(iteration)+"\n");
     for val in predictors:
-        f.write(str(val[1])+"\n");
+        f.write(str(val[1])+", ");
     f.close();
 
 
@@ -169,7 +173,7 @@ while iteration < NUM_ITER:
     predictors = calcFitness("predictors/iter_"+str(iteration));
     
     # Save the results
-    writeResults(predictors);
+    writeResults(predictors, iteration);
     
     # Use seed predictors
     seedPredictors = calcFitness("seed");
