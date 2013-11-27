@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 
 # This is the highest level script. It runs everything necessary
 # such as calling the Makefile, doing parsing, etc
@@ -141,17 +141,14 @@ lastBest = 0;
 mutationRate = MUTATION_INIT;
 def setMutationRate(predictors):
     global MUTATION_INIT, MUTATION_THRESHOLD, best, lastBest, mutationRate;
-
     if(predictors[0][1] < best):
         best = predictors[0][1];
         mutationRate = MUTATION_INIT;
     else:
         lastBest = lastBest + 1;
-
     if(lastBest > STAGNATION_THRESHOLD):
         if(mutationRate < MUTATION_THRESHOLD):
             mutationRate = mutationRate * 2;
-            print "STAGNATION, SETTING MUTATION RATE = "+str(mutationRate);
             if(mutationRate > MUTATION_THRESHOLD):
                 mutationRate = MUTATION_THRESHOLD;
 
@@ -159,7 +156,7 @@ def setMutationRate(predictors):
 os.system("make java");
 os.system("rm -rf predictors");
 os.system("rm -rf runs/results/*");
-os.system('mkdir predictors')
+os.system('mkdir predictors');
 
 # First, compile and generate the initial batch
 init = "java -cp .:antlr-3.4-complete.jar BPLangProg init predictors/iter_0 "+str(POPULATION)+" "+str(MAX_LINES)+" "+str(getSeed());

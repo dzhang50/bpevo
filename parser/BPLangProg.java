@@ -40,6 +40,9 @@ public class BPLangProg {
 	do {
 	  pred = genPredictor("library", maxSize, rand);
 	  node = getInitialNodeString(pred);
+          fixOutput(node);
+          fixInputs(node, rand);
+          //System.out.println("Pred "+i+" initialized to: \n"+node);
 	} while(verifyPredictor(node) == false || verifyGenPredictor(node) == false);
 	
 	runSysCmd("mkdir "+rootDir+"/predictor_"+i);
@@ -66,20 +69,18 @@ public class BPLangProg {
 	//child = matePredictors(tree1, tree2, rand);
 
 	child = treeCrossover(tree1, tree2, rand);
-        System.out.println("Mutating: \n"+child);
-        //System.out.println(child);
+        //System.out.println("Mutating: \n"+child);
         for(int i = 0; i < numMutations; i++) {
 	  mutatePredictor(child, "library", rand);
 	}
       } while(verifyPredictor(child) == false);
-      System.out.println("Predictor successfully mutated: \n"+child);
-      //System.out.println(child);
+      //System.out.println("Predictor successfully mutated: \n"+child);
       
       String n = nodeToString(child);
       
-      //System.out.println("node to string: "+child);
+      //System.out.println(n);
 
-      System.out.println("New predictor: \n"+n);
+      //System.out.println("New predictor: \n"+n);
 
       genBPLang(childPath+"/bplang", n);
       pareTree(child, "prediction");
@@ -278,7 +279,7 @@ public class BPLangProg {
     
     if(sel == 0) {
       //---------- Change a wire connection -------------------
-      System.out.println("Changing a wire connection!");
+      //System.out.println("Changing a wire connection!");
       int nodeIdx = -1;
       
       // Make sure predictor has at least one input
@@ -312,7 +313,7 @@ public class BPLangProg {
     }
     else if(sel == 1){
       //------------ Change a parameter -----------------------
-      System.out.println("Changing a parameter!");
+      //System.out.println("Changing a parameter!");
       int nodeIdx = -1;
       
       // Make sure predictor has at least one parameter
@@ -369,7 +370,7 @@ public class BPLangProg {
     }
     else if(sel == 2){
       //---------------- Add a node ------------------------
-      System.out.println("Adding a node!");
+      //System.out.println("Adding a node!");
       
       // Generate a 1-line predictor and add it 
       Node lib = getInitialNode(file);
@@ -408,14 +409,14 @@ public class BPLangProg {
     }
     else {
       //---------------- Delete a node ------------------------
-      System.out.println("Deleting a node!");
+      //System.out.println("Deleting a node!");
       if(node.children.size() <= 2) {
 	return;
       }
       node.children.remove(rand.nextInt(node.children.size()));
-      fixInputs(node, rand);
-      fixOutput(node);
     }
+    fixOutput(node);
+    fixInputs(node,rand);
     //System.out.println("\n\n"+nodeToString(node));
   }
 
@@ -546,16 +547,16 @@ public class BPLangProg {
 	first = 0;
       }
       toAdd.children.get(j).children.get(0).msg = addOutput;
-      n1.children.add(removeIdx, new Node(toAdd.children.get(j)));
+      n1.children.add(removeIdx+j, new Node(toAdd.children.get(j)));
       j++;
+      //System.out.println(n1);
     }
     
     //System.out.println(n1);
    
     // Cleanup
-    
-    fixInputs(n1, rand);
-    fixOutput(n1);
+    //fixOutput(n1);
+    //fixInputs(n1, rand);
     
     //Node node3 = buildTree("prediction", n1, vars, null);
     //System.out.println("Final:\n"+node1);
@@ -640,72 +641,112 @@ public class BPLangProg {
 
 
   public static void fixInputs(Node node, Random rand){
-    int found, r;
+    int found, q, r;
     int sw1 = 0; 
     int elements = 0;
     int delete = 0;
-    List<String> outputs = new ArrayList<String>();
-    addInputKeywords(outputs);
-    
-    // Make sure predictor is short enough
-    // FIXME: Change to maxLines-1
-    if(node.children.size() > 11){
-      for (Node id : node.children.get(11).children){
-        if (id.type == NodeType.OUTPUT_ID){
-          id.msg = "prediction";
-        }
-      }
+    String loop = "";
 
-      // FIXME: Change to maxLines+1
-      while(node.children.size()>12){
-        
-        //System.out.println("REMOVING"+node.children.get(12).children.get(0).msg);
-        //System.out.println("Before :\n"+node);
-        
-        node.children.remove(12);
-      }
+    List<String> outputs = new ArrayList<String>();
+    List<String> keywords = new ArrayList<String>();
+    addInputKeywords(keywords);
+
+    if(node.children.size() < 4){
+      System.out.println("Warning: predictor length= "+node.children.size());
     }
+
+    // Make sure predictor is short enough
+    // FIXME: Change to maxLines
+    while(node.children.size()>12){
+      //System.out.println("REMOVING"+node.children.get(12).children.get(0).msg);
+      //System.out.println("Before :\n"+node);
+      node.children.remove(12);
+      node.children.get(11).children.get(0).msg = "prediction";
+    } 
+ 
+    //for (Node id: node.children.get(node.children.size()-1).children){
+    //  if (id.type == NodeType.OUTPUT_ID){
+    //      id.msg = "prediction";  
+    //  }
+    //}
     
     for(Node n : node.children) {
-      elements++;
-
       // No more modules
       if (n == null){
         return;
       }
-
-      else for(Node id : n.children){
+      for(Node id : n.children){
         found = 0;
         if (id.type == NodeType.INPUT_ID){
-          for(String o : outputs){
-            if (id.msg.equals(o)){
+          for(String k : keywords){
+            if (id.msg.equals(k)){
               found = 1;
             }
           }
-        }
-        if (id.type == NodeType.INPUT_ID && found == 0){
-          
-          //System.out.println("Output "+id.msg+" not found!");
-          //System.out.println(node);
-          String loop = id.msg;
-          if (checkLoop(node, sw1, loop, 0) == 1){
-            //Outputs come first in the attribute listing, 
-            //so random range is one less than number of outputs reached
-            id.msg = outputs.get(rand.nextInt(outputs.size()-1));
+
+          for(int i=0; i<outputs.size() && found==0; i++){
+            if (id.msg.equals(outputs.get(i))){
+              found = 1;
+              outputs.remove(i); // Remove output so it is not reused
+              i--;
+              loop = id.msg;
+              while (checkLoop(node, sw1, loop, 0) == 1){
+                // Reassigns current input due to contension 
+                //System.out.println("Loop found at "+sw1+"!");
+                //System.out.println(node);
+                r = rand.nextInt(outputs.size() + keywords.size());
+		q = rand.nextInt(outputs.size() + keywords.size());
+		    // 1/2 chance of using a module and not a keyword
+                if (1 > (r % 2)){
+		  if (outputs.size() != 0){
+                    id.msg = outputs.get(q%(outputs.size()));
+		  }else{
+		    id.msg = keywords.get(q%(keywords.size()));
+ 		  }
+                }else{
+                  id.msg = keywords.get(q%(keywords.size()));
+                }
+              }
+            }
           }
 
-        }
-        if(id.type == NodeType.OUTPUT_ID){
-          outputs.add(id.msg);
+          if (found == 0){
+            //System.out.println("Invalid Input! "+id.msg);
+            r = rand.nextInt(outputs.size() + keywords.size());
+            q = rand.nextInt(outputs.size() + keywords.size());
+            if (1 > (r % 2)){
+              if (outputs.size() != 0){
+                id.msg = outputs.get(q%(outputs.size()));
+              }else{
+                id.msg = keywords.get(q%(keywords.size()));
+              }
+            }else{
+              id.msg = keywords.get(q%(keywords.size()));
+            }
+          }
+
+          /*while (checkLoop(node, sw1, loop, 0) == 1){
+            // Reassigns current input due to contension 
+            System.out.println("Loop found at "+sw1+"!");
+            System.out.println(node);
+            r = rand.nextInt(outputs.size()+keywords.size()-1);
+            if (r<keywords.size()){
+              id.msg = keywords.get(r);
+            } else{
+              id.msg = outputs.get(r-keywords.size());
+            }
+          }*/
+
         }
       }
+      // Add to list of outputs
+      if(n.children.get(0).type != NodeType.OUTPUT_ID){
+        System.out.println("ERROR: output id not first child!\n");
+      }
+      outputs.add(n.children.get(0).msg);
+      
       sw1++;
-      // Add the 6 processor input signals to keep depth lower
-      /*if (sw1 % 6 == 0){
-        addInputKeywords(outputs);
-      }*/
     }
-
     //System.out.println(node.children);
 
   }
@@ -718,33 +759,22 @@ public class BPLangProg {
     int sw = 0;
     int found = 0;
     int out = 0;
+    
+    // Check the Output name of current node
+    if (node.children.get(sw1).children.get(0).type != NodeType.OUTPUT_ID){
+      System.out.println("ERROR: output id not first child!\n");}
+    output = node.children.get(sw1).children.get(0).msg;
 
-    // Get the Output name of current node
-    for (Node id : node.children.get(sw1).children) {
-      if (id.type == NodeType.OUTPUT_ID){
-
-        // Check if swap node has been reached, possibly indicating a loop
-        if (id.msg.equals(loop)){
-          found = 1;
-          if (second == 1){
-            //System.out.println("Loop Indeed!!");
-            out = 1;
-          }
-        }
-
-        if (id.msg.equals("looped")){
-          //System.out.println("Found Second Loop!");
-          out = 1;
-        }
-        output = id.msg;
-      }
-      
-    }     
-
-    if (found == 0){
-      //System.out.println("Invalid input!");
-      out = 1;
+	// Check if loop exists for this node
+    if (output.equals(loop) && second == 1){
+      return 1;
     }
+    	// Check whether another loop has been reached
+	// This will be fixed in a future call to this function
+    if (output.equals("looped")) {
+      return 0;
+    }
+
     second = 1;
 
     if (output.equals("")){
@@ -753,7 +783,7 @@ public class BPLangProg {
 
     Node check = new Node(node);
     // Check for next link that takes node as input
-    for (Node n : check.children){
+    for (Node n: check.children){
       for (Node id : n.children){
         // 
         if (id.type == NodeType.INPUT_ID && id.msg.equals(output)){
@@ -767,7 +797,9 @@ public class BPLangProg {
 
           //System.out.println("Found another link node: "+id.msg);
           // Reursively check for original missing input node
-          if (checkLoop(check, sw, loop, second) == 1){
+          //System.out.println("Checking:"+sw);
+          
+	  if (checkLoop(check, sw, loop, second) == 1){
             return 1;
           }
         }
@@ -775,10 +807,26 @@ public class BPLangProg {
       sw++;
     }
     
-    return out;    
+    return 0;    
   }
 
   public static void fixOutput(Node node) {
+    int j,i;
+    int count;
+
+    //System.out.println("Fixing: \n"+node);
+    List<String> outputs = new ArrayList<String>();
+    for (i=0; i<node.children.size()-1; i++){ // Every node except the root
+      //if (node.children.get(i).children.get(0).msg.equals("prediction")){
+      count = 0;
+      for (j=0; j<i; j++){ // Counts previous similar modules
+         
+        if(node.children.get(j).msg.equals(node.children.get(i).msg)){
+          //System.out.println("Counted: "+node.children.get(j).msg);
+          count++;}
+      }
+      node.children.get(i).children.get(0).msg = node.children.get(i).msg.toLowerCase()+"_"+count;
+    }
     Node lastOutput = node.children.get(node.children.size()-1).children.get(0);
     lastOutput.msg = "prediction";
   }
@@ -795,7 +843,9 @@ public class BPLangProg {
     List<String> inputKeywords = new ArrayList<String>();
     addInputKeywords(inputKeywords);
     Node nodeTree = buildTree("prediction", node, inputKeywords, null);
-    
+    //System.out.println("\nVerifying Predictor!\nDepth= "+treeDepth(nodeTree)+"\nSize=  "+treeSize(nodeTree));
+    //System.out.println("Children= "+node.children.size());
+    //System.out.println(node);
     if(treeDepth(nodeTree) > 12) {
       return false;
     }
