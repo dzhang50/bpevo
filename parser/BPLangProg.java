@@ -30,7 +30,7 @@ public class BPLangProg {
     if(args[0].equals("init")) {
       String rootDir = args[1];
       int numPredictors = Integer.parseInt(args[2]);
-      int maxSize = Integer.parseInt(args[3]);
+      int maxLines = Integer.parseInt(args[3]);
       rand = new Random(Integer.parseInt(args[4]));
       runSysCmd("mkdir "+rootDir); //r.exec("mkdir predictors");
       
@@ -38,10 +38,10 @@ public class BPLangProg {
 	String pred;
 	Node node;
 	do {
-	  pred = genPredictor("library", maxSize, rand);
+	  pred = genPredictor("library", maxLines, rand);
 	  node = getInitialNodeString(pred);
           fixOutput(node);
-          fixInputs(node, rand);
+          fixInputs(node, maxLines, rand);
           //System.out.println("Pred "+i+" initialized to: \n"+node);
 	} while(verifyPredictor(node) == false || verifyGenPredictor(node) == false);
 	
@@ -62,7 +62,8 @@ public class BPLangProg {
       Node tree2 = getInitialNode(args[2]);
       String childPath = args[3];
       int numMutations = Integer.parseInt(args[4]);
-      rand = new Random(Integer.parseInt(args[5]));
+      int maxLines = Integer.parseInt(args[5]);
+      rand = new Random(Integer.parseInt(args[6]));
       
       Node child;
       do {
@@ -71,7 +72,7 @@ public class BPLangProg {
 	child = treeCrossover(tree1, tree2, rand);
         //System.out.println("Mutating: \n"+child);
         for(int i = 0; i < numMutations; i++) {
-	  mutatePredictor(child, "library", rand);
+	  mutatePredictor(child, "library", maxLines, rand);
 	}
       } while(verifyPredictor(child) == false);
       //System.out.println("Predictor successfully mutated: \n"+child);
@@ -273,7 +274,7 @@ public class BPLangProg {
     return node;
   }
   
-  public static void mutatePredictor(Node node, String file, Random rand) throws Exception {
+  public static void mutatePredictor(Node node, String file, int maxLines, Random rand) throws Exception {
     int sel = rand.nextInt(4);
     Node config = getInitialNode("library");
     
@@ -416,7 +417,7 @@ public class BPLangProg {
       node.children.remove(rand.nextInt(node.children.size()));
     }
     fixOutput(node);
-    fixInputs(node,rand);
+    fixInputs(node, maxLines, rand);
     //System.out.println("\n\n"+nodeToString(node));
   }
 
@@ -555,11 +556,6 @@ public class BPLangProg {
     //System.out.println(n1);
    
     // Cleanup
-    //fixOutput(n1);
-    //fixInputs(n1, rand);
-    
-    //Node node3 = buildTree("prediction", n1, vars, null);
-    //System.out.println("Final:\n"+node1);
     
     return n1;
   }
@@ -640,7 +636,7 @@ public class BPLangProg {
   }
 
 
-  public static void fixInputs(Node node, Random rand){
+  public static void fixInputs(Node node, int maxLines, Random rand){
     int found, q, r;
     int sw1 = 0; 
     int elements = 0;
@@ -656,12 +652,11 @@ public class BPLangProg {
     }
 
     // Make sure predictor is short enough
-    // FIXME: Change to maxLines
-    while(node.children.size()>12){
+    while(node.children.size()>maxLines){
       //System.out.println("REMOVING"+node.children.get(12).children.get(0).msg);
       //System.out.println("Before :\n"+node);
-      node.children.remove(12);
-      node.children.get(11).children.get(0).msg = "prediction";
+      node.children.remove(maxLines);
+      node.children.get(maxLines-1).children.get(0).msg = "prediction";
     } 
  
     //for (Node id: node.children.get(node.children.size()-1).children){
@@ -1013,14 +1008,14 @@ public class BPLangProg {
 
 
   // Library -> BP (String)
-  public static String genPredictor(String file, int maxSize, Random rand) throws Exception {
+  public static String genPredictor(String file, int maxLines, Random rand) throws Exception {
     Node node = getInitialNode(file);
     //System.out.println(node);
     Map<String, Node> library = genConfigMap(node);
     
     // Use constrained random method of generating a predictor
     
-    int predictorSize = maxSize; // rand.nextInt(maxSize)+1; // size 1-maxSize elements
+    int predictorSize = rand.nextInt(maxLines)+1; 
     //System.out.println("Size chosen: "+predictorSize);
     List<String> vars = new ArrayList<String>();
     addInputKeywords(vars);

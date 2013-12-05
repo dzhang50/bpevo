@@ -203,7 +203,7 @@ while iteration < NUM_ITER:
         for numChildren in range(2):
             newIter = newIter+1;
             os.system("mkdir predictors/mateIter_"+str(iteration)+"/matePredictor_"+str(newIter));
-            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/mateIter_"+str(iteration)+"/matePredictor_"+str(newIter)+" "+str(mutationRate)+" "+str(getSeed());
+            run = "java -cp .:antlr-3.4-complete.jar BPLangProg mate "+pred1+" "+pred2+" predictors/mateIter_"+str(iteration)+"/matePredictor_"+str(newIter)+" "+str(mutationRate)+" "+str(MAX_LINES)+" "+str(getSeed());
             print run;
             os.system(run);
 
